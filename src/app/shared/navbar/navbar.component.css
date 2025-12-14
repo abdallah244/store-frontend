@@ -1,0 +1,277 @@
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+
+.navbar {
+  background: linear-gradient(135deg, rgba(20, 20, 20, 0.98), rgba(40, 40, 40, 0.95));
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+  overflow: visible;
+}
+
+.nav-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+/* Logo */
+.logo-link {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.logo-link:hover {
+  opacity: 0.8;
+}
+
+.logo-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+  object-fit: contain;
+  background: transparent;
+  border: none;
+}
+
+.logo-texts {
+  display: flex;
+  flex-direction: column;
+}
+
+.logo-main {
+  font-family: 'Inter Tight', serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: 0.08em !important;
+  color: #fff;
+  text-transform: uppercase;
+}
+
+.logo-sub {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  color: #dc2626;
+  text-transform: uppercase;
+  margin-top: -0.3rem;
+}
+
+/* Desktop Navigation */
+.desktop-menu {
+  flex: 1;
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.nav-item {
+  position: relative;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #e5e7eb;
+  text-decoration: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: color 0.2s ease, background-color 0.2s ease;
+  will-change: color, background-color;
+}
+
+.nav-link:hover {
+  color: #dc2626;
+  background-color: rgba(220, 38, 38, 0.1);
+}
+
+.nav-link.active {
+  color: #dc2626;
+  background-color: rgba(220, 38, 38, 0.15);
+  border-bottom: 2px solid #dc2626;
+}
+
+.nav-link i {
+  font-size: 1rem;
+}
+
+/* Login Container */
+.login-container {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  margin-left: auto;
+}
+
+.user-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-name {
+  color: #e5e7eb;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.icon-link {
+  color: #e5e7eb;
+  font-size: 1.1rem;
+  transition: color 0.2s ease;
+  text-decoration: none;
+}
+
+.icon-link:hover {
+  color: #dc2626;
+}
+
+.login-btn,
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+  border: none;
+  color: #fff;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+}
+
+.login-btn:hover,
+.logout-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(220, 38, 38, 0.4);
+}
+
+.logout-btn {
+  padding: 0.6rem 1rem;
+}
+
+/* Mobile Menu Button */
+.mobile-menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: #fbbf24;
+  font-size: 1.4rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.mobile-menu-btn:hover {
+  color: #fff;
+}
+
+/* Mobile Menu */
+.mobile-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1200;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(11, 27, 56, 0.98));
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  list-style: none;
+  padding: 1rem;
+  margin: 0;
+  flex-direction: column;
+  gap: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.mobile-menu.active {
+  display: flex !important;
+}
+
+.mobile-menu .nav-link {
+  padding: 0.75rem 1rem;
+  width: 100%;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .nav-container {
+    padding: 0.8rem 1rem;
+    gap: 1rem;
+  }
+
+  .brand-logo {
+    width: 38px;
+    height: 38px;
+  }
+
+  .logo-main {
+    font-size: 1.1rem;
+  }
+
+  .logo-sub {
+    font-size: 0.6rem;
+  }
+
+  .desktop-menu {
+    display: none;
+  }
+
+  .mobile-menu-btn {
+    display: block;
+  }
+
+  .login-container {
+    gap: 0.8rem;
+  }
+
+  .user-section {
+    display: none;
+  }
+
+  .login-btn {
+    padding: 0.5rem 0.8rem;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-container {
+    padding: 0.6rem 0.8rem;
+  }
+
+  .logo-main {
+    font-size: 1rem;
+  }
+
+  .logo-sub {
+    font-size: 0.55rem;
+  }
+
+  .mobile-menu-btn {
+    font-size: 1.2rem;
+  }
+}

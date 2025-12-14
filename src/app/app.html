@@ -1,0 +1,27 @@
+<!-- Page Loading Bar -->
+@if (showPageLoading()) {
+<div class="page-loading-bar" [style.width.%]="progress()"></div>
+}
+
+<!-- Toast Notifications -->
+<app-toast-container></app-toast-container>
+
+<!-- Navbar (Hidden for Admin Routes) -->
+@if (!isAdminRoute()) {
+<app-navbar></app-navbar>
+}
+
+<!-- Admin Navbar (Shown only for Admin Routes) -->
+@if (isAdminRoute()) {
+<app-admin-navbar></app-admin-navbar>
+}
+
+<!-- Main Content -->
+<main class="app-content">
+  <router-outlet />
+</main>
+
+<!-- Footer (Hidden for Admin Routes) -->
+@if (!isAdminRoute()) {
+<app-footer></app-footer>
+}

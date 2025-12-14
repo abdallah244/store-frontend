@@ -1,0 +1,230 @@
+<div class="cart-container">
+  <!-- Header -->
+  <div class="cart-header">
+    <div class="header-title">
+      <i class="fas fa-shopping-cart"></i>
+      <h1>My Cart</h1>
+    </div>
+    <button
+      class="clear-btn"
+      (click)="clear()"
+      title="Clear Cart"
+      *ngIf="(cart.items$ | async)?.length as count"
+    >
+      <i class="fas fa-trash"></i>
+      Clear Cart
+    </button>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty" *ngIf="(cart.items$ | async)?.length === 0">
+    <i class="fas fa-shopping-bag"></i>
+    <h2>Your Cart is Empty</h2>
+    <p>Looks like you haven't added anything yet</p>
+    <a class="go-shop" routerLink="/products">
+      <i class="fas fa-arrow-left"></i>
+      Continue Shopping
+    </a>
+  </div>
+
+  <!-- Cart Content -->
+  <div class="cart-content" *ngIf="cart.items$ | async as list">
+    <div *ngIf="list.length > 0" class="cart-main">
+      <!-- Cart Items Section -->
+      <div class="cart-items-section">
+        <div class="section-header">
+          <i class="fas fa-list"></i>
+          <h2>Order Items</h2>
+          <span class="item-count">{{ list.length }} item(s)</span>
+        </div>
+
+        <div class="cart-items">
+          <div class="cart-item" *ngFor="let item of list; trackBy: trackById">
+            <!-- Image -->
+            <div class="item-image">
+              <img [src]="item.image" [alt]="item.name" loading="lazy" />
+              <span class="discount-badge" *ngIf="item.discount && item.discount > 0">
+                <i class="fas fa-tag"></i>
+                -{{ item.discount }}%
+              </span>
+            </div>
+
+            <!-- Details -->
+            <div class="item-details">
+              <h3 class="item-name">{{ item.name }}</h3>
+
+              <!-- Variants -->
+              <div class="variants" *ngIf="item.selectedSize || item.selectedColor">
+                <span *ngIf="item.selectedColor" class="variant-tag color-tag">
+                  <i class="fas fa-circle"></i>
+                  <span class="color-swatch" [style.background]="item.selectedColor"></span>
+                </span>
+                <span *ngIf="item.selectedSize" class="variant-tag size-tag">
+                  <i class="fas fa-ruler"></i>
+                  {{ item.selectedSize }}
+                </span>
+              </div>
+
+              <!-- Price Info -->
+              <div class="price-info">
+                <span *ngIf="item.discount && item.discount > 0" class="price-original">
+                  <i class="fas fa-times"></i>
+                  {{ currency }}{{ item.unitPrice.toFixed(2) }}
+                </span>
+                <span class="price-current">
+                  <i class="fas fa-dollar-sign"></i>
+                  {{ currency }}{{ getDiscountedPrice(item).toFixed(2) }}
+                </span>
+                <span *ngIf="item.discount && item.discount > 0" class="savings-badge">
+                  <i class="fas fa-piggy-bank"></i>
+                  Save {{ currency }}{{ getSavings(item).toFixed(2) }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="item-actions">
+              <div class="qty-control">
+                <button
+                  class="qty-btn minus"
+                  (click)="dec(item)"
+                  [disabled]="item.quantity <= 1"
+                  title="Decrease quantity"
+                >
+                  <i class="fas fa-minus"></i>
+                </button>
+                <input type="text" class="qty-input" [value]="item.quantity" readonly />
+                <button class="qty-btn plus" (click)="inc(item)" title="Increase quantity">
+                  <i class="fas fa-plus"></i>
+                </button>
+              </div>
+
+              <button class="remove-btn" (click)="remove(item)" title="Remove from cart">
+                <i class="fas fa-trash-alt"></i>
+                Remove
+              </button>
+            </div>
+
+            <!-- Total -->
+            <div class="item-total">
+              <span class="total-label">Total</span>
+              <span class="total-amount">{{ currency }}{{ item.total.toFixed(2) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary Sidebar -->
+      <div class="cart-summary-section">
+        <!-- Order Summary -->
+        <div class="order-summary">
+          <div class="summary-header">
+            <i class="fas fa-receipt"></i>
+            <h2>Order Summary</h2>
+          </div>
+
+          <div class="summary-rows">
+            <div class="summary-row">
+              <span class="label">
+                <i class="fas fa-box"></i>
+                Subtotal
+              </span>
+              <span class="value">{{ currency }}{{ total(list).toFixed(2) }}</span>
+            </div>
+            <div class="summary-row">
+              <span class="label">
+                <i class="fas fa-truck"></i>
+                Delivery Fee
+              </span>
+              <span class="value">{{ currency }}{{ deliveryFee().toFixed(2) }}</span>
+            </div>
+            <div class="summary-row total">
+              <span class="label">
+                <i class="fas fa-crown"></i>
+                Total Amount
+              </span>
+              <span class="value">{{ currency }}{{ totalWithDelivery(list).toFixed(2) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment Method -->
+        <div class="payment-method">
+          <div class="summary-header">
+            <i class="fas fa-credit-card"></i>
+            <h2>Payment</h2>
+          </div>
+
+          <div class="payment-options">
+            <!-- Cash on Delivery -->
+            <label class="payment-option">
+              <input
+                type="radio"
+                name="payment"
+                value="cod"
+                [checked]="paymentMethod() === 'cod'"
+                (change)="paymentMethod.set('cod')"
+              />
+              <div class="option-content">
+                <i class="fas fa-money-bill-wave"></i>
+                <div class="option-text">
+                  <strong>Cash on Delivery</strong>
+                  <p>Pay when order arrives</p>
+                </div>
+              </div>
+            </label>
+
+            <!-- Online Payment -->
+            <label class="payment-option">
+              <input
+                type="radio"
+                name="payment"
+                value="online"
+                [checked]="paymentMethod() === 'online'"
+                (change)="paymentMethod.set('online')"
+              />
+              <div class="option-content">
+                <i class="fas fa-mobile-alt"></i>
+                <div class="option-text">
+                  <strong>Online Payment</strong>
+                  <p>Secure card or wallet</p>
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Checkout Button -->
+        <button
+          class="checkout-btn"
+          (click)="checkout()"
+          [disabled]="list.length === 0 || isProcessing()"
+          [title]="paymentMethod() === 'online' ? 'Pay with Card' : 'Order with COD'"
+        >
+          <i class="fas fa-lock" *ngIf="!isProcessing()"></i>
+          <i class="fas fa-spinner fa-spin" *ngIf="isProcessing()"></i>
+          <span>{{ isProcessing() ? 'Sending...' : 'Place Order' }}</span>
+          <span class="payment-method-badge">{{
+            paymentMethod() === 'online' ? 'Online' : 'COD'
+          }}</span>
+        </button>
+
+        <!-- Error Message -->
+        <div class="error-message" *ngIf="errorMessage()">
+          <i class="fas fa-exclamation-circle"></i>
+          {{ errorMessage() }}
+        </div>
+
+        <!-- Continue Shopping -->
+        <a class="continue-shopping" routerLink="/products">
+          <i class="fas fa-arrow-left"></i>
+          Continue Shopping
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Order Success Modal -->
+<app-order-success-modal [isOpen]="isOrderModalOpen()" (close)="closeOrderModal()">
+</app-order-success-modal>

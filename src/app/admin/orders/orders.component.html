@@ -1,0 +1,344 @@
+<div class="orders-container">
+  <!-- Header -->
+  <div class="orders-header">
+    <div class="header-title">
+      <i class="fas fa-shopping-bag"></i>
+      <h1>Orders Management</h1>
+      <span class="orders-count">{{ filteredOrders().length }} Orders</span>
+    </div>
+    <button class="refresh-btn" (click)="loadOrders()" [disabled]="isLoading()">
+      <i class="fas fa-sync" [class.fa-spin]="isLoading()"></i>
+      Refresh
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-section">
+    <div class="filter-group">
+      <i class="fas fa-filter"></i>
+      <select
+        [ngModel]="filterStatus()"
+        (ngModelChange)="filterStatus.set($event); onFiltersChanged()"
+        class="filter-select"
+      >
+        <option value="all">All Orders</option>
+        <option value="pending">Pending</option>
+        <option value="approved">Approved</option>
+        <option value="rejected">Rejected</option>
+        <option value="completed">Completed</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+    </div>
+
+    <div class="search-group">
+      <i class="fas fa-search"></i>
+      <input
+        type="text"
+        [ngModel]="searchTerm()"
+        (ngModelChange)="searchTerm.set($event); onFiltersChanged()"
+        placeholder="Search by name, email, phone or order ID..."
+        class="search-input"
+      />
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading()">
+    <i class="fas fa-spinner fa-spin"></i>
+    <p>Loading orders...</p>
+  </div>
+
+  <!-- Error State -->
+  <div class="error-state" *ngIf="!isLoading() && errorMessage()">
+    <i class="fas fa-exclamation-circle"></i>
+    <h3>Error Loading Orders</h3>
+    <p>{{ errorMessage() }}</p>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!isLoading() && !errorMessage() && filteredOrders().length === 0">
+    <i class="fas fa-inbox"></i>
+    <h3>No Orders Found</h3>
+    <p>No orders match the search criteria</p>
+  </div>
+
+  <!-- Orders Carousel -->
+  <div
+    class="orders-carousel"
+    *ngIf="!isLoading() && !errorMessage() && filteredOrders().length > 0"
+  >
+    <div class="carousel-nav">
+      <button class="carousel-btn" (click)="prevSlide()" [disabled]="currentSlide() === 0">
+        <i class="fas fa-arrow-left"></i>
+      </button>
+      <div class="carousel-dots" *ngIf="getSlides().length > 1">
+        <button
+          class="dot"
+          *ngFor="let s of getSlides(); let i = index"
+          [class.active]="i === currentSlide()"
+          (click)="setSlide(i)"
+        ></button>
+      </div>
+      <button
+        class="carousel-btn"
+        (click)="nextSlide()"
+        [disabled]="currentSlide() >= getSlides().length - 1"
+      >
+        <i class="fas fa-arrow-right"></i>
+      </button>
+    </div>
+    <div class="carousel-track">
+      <div
+        class="carousel-slide"
+        *ngFor="let slide of getSlides(); let slideIndex = index"
+        [class.active]="slideIndex === currentSlide()"
+      >
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Order ID</th>
+              <th>Customer</th>
+              <th>Phone</th>
+              <th>Total Amount</th>
+              <th>Payment Method</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let order of slide; let i = index" class="order-row">
+              <td class="col-index">{{ slideIndex * 5 + i + 1 }}</td>
+              <td class="order-id">
+                <i class="fas fa-hashtag"></i>
+                {{ order._id.slice(-8) }}
+              </td>
+              <td>
+                <div class="customer-info">
+                  <strong>{{ order.userName }}</strong>
+                  <span>{{ order.userEmail }}</span>
+                </div>
+              </td>
+              <td class="phone">
+                <i class="fas fa-phone"></i>
+                {{ order.userPhone }}
+              </td>
+              <td class="amount">
+                <strong>{{ order.totalAmount }}</strong> EGP
+              </td>
+              <td>
+                <span class="payment-badge" [class.cod]="order.paymentMethod === 'cod'">
+                  <i
+                    [class]="
+                      order.paymentMethod === 'cod'
+                        ? 'fas fa-money-bill-wave'
+                        : 'fas fa-credit-card'
+                    "
+                  ></i>
+                  {{ order.paymentMethod === 'cod' ? 'Cash on Delivery' : 'Online' }}
+                </span>
+              </td>
+              <td>
+                <span class="status-badge" [style.background-color]="getStatusColor(order.status)">
+                  {{ getStatusText(order.status) }}
+                </span>
+              </td>
+              <td class="date">
+                {{ formatDate(order.orderDate) }}
+              </td>
+              <td class="actions">
+                <button class="action-btn view" (click)="viewOrder(order)" title="View Details">
+                  <i class="fas fa-eye"></i>
+                </button>
+                <button
+                  class="action-btn approve"
+                  (click)="approveOrder(order)"
+                  *ngIf="order.status === 'pending'"
+                  title="Approve"
+                >
+                  <i class="fas fa-check"></i>
+                </button>
+                <button
+                  class="action-btn reject"
+                  (click)="rejectOrder(order)"
+                  *ngIf="order.status === 'pending'"
+                  title="Reject"
+                >
+                  <i class="fas fa-times"></i>
+                </button>
+                <button class="action-btn delete" (click)="deleteOrder(order)" title="Delete">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Order Details Modal -->
+<div class="modal-overlay" *ngIf="selectedOrder()" (click)="closeOrderDetails()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>
+        <i class="fas fa-file-invoice"></i>
+        Order Details #{{ selectedOrder()!._id.slice(-8) }}
+      </h2>
+      <button class="close-modal-btn" (click)="closeOrderDetails()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="modal-body" *ngIf="selectedOrder() as order">
+      <!-- Customer Info -->
+      <div class="info-section">
+        <h3>
+          <i class="fas fa-user"></i>
+          Customer Information
+        </h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <label>Name:</label>
+            <span>{{ order.userName }}</span>
+          </div>
+          <div class="info-item">
+            <label>Email:</label>
+            <span>{{ order.userEmail }}</span>
+          </div>
+          <div class="info-item">
+            <label>Phone:</label>
+            <span>{{ order.userPhone }}</span>
+          </div>
+          <div class="info-item full-width">
+            <label>Address:</label>
+            <span>{{ order.userAddress }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Order Items -->
+      <div class="info-section">
+        <h3>
+          <i class="fas fa-shopping-cart"></i>
+          Products ({{ order.items.length }})
+        </h3>
+        <div class="items-list">
+          <div class="item" *ngFor="let item of order.items">
+            <img [src]="item.productImage" [alt]="item.productName" />
+            <div class="item-details">
+              <h4>{{ item.productName }}</h4>
+              <div class="item-meta">
+                <span *ngIf="item.selectedSize">
+                  <i class="fas fa-ruler"></i> {{ item.selectedSize }}
+                </span>
+                <span *ngIf="item.selectedColor">
+                  <i class="fas fa-palette"></i> {{ item.selectedColor }}
+                </span>
+              </div>
+            </div>
+            <div class="item-quantity">
+              <span>Quantity: {{ item.quantity }}</span>
+            </div>
+            <div class="item-price">
+              <strong>{{ item.total }}</strong> EGP
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Order Summary -->
+      <div class="info-section">
+        <h3>
+          <i class="fas fa-calculator"></i>
+          Order Summary
+        </h3>
+        <div class="summary-rows">
+          <div class="summary-row">
+            <span>Subtotal:</span>
+            <strong>{{ order.subtotal }} EGP</strong>
+          </div>
+          <div class="summary-row">
+            <span>Delivery Fee:</span>
+            <strong>{{ order.deliveryFee }} EGP</strong>
+          </div>
+          <div class="summary-row total">
+            <span>Total Amount:</span>
+            <strong>{{ order.totalAmount }} EGP</strong>
+          </div>
+          <div class="summary-row">
+            <span>Payment Method:</span>
+            <strong>{{
+              order.paymentMethod === 'cod' ? 'Cash on Delivery' : 'Online Payment'
+            }}</strong>
+          </div>
+          <div class="summary-row">
+            <span>Order Status:</span>
+            <span class="status-badge" [style.background-color]="getStatusColor(order.status)">
+              {{ getStatusText(order.status) }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Admin Notes -->
+      <div class="info-section" *ngIf="order.adminNotes">
+        <h3>
+          <i class="fas fa-sticky-note"></i>
+          Admin Notes
+        </h3>
+        <p class="admin-notes">{{ order.adminNotes }}</p>
+      </div>
+
+      <!-- Actions -->
+      <div class="modal-actions">
+        <button
+          class="action-btn-large approve"
+          (click)="approveOrder(order)"
+          *ngIf="order.status === 'pending'"
+        >
+          <i class="fas fa-check-circle"></i>
+          Approve Order
+        </button>
+        <button
+          class="action-btn-large reject"
+          (click)="rejectOrder(order)"
+          *ngIf="order.status === 'pending'"
+        >
+          <i class="fas fa-times-circle"></i>
+          Reject Order
+        </button>
+        <button class="action-btn-large delete" (click)="deleteOrder(order)">
+          <i class="fas fa-trash"></i>
+          Delete Order
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Stock Error Modal -->
+<div class="modal-overlay stock-error-modal" *ngIf="showStockError()" (click)="closeStockError()">
+  <div class="modal-content stock-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header error-header">
+      <h2>
+        <i class="fas fa-exclamation-triangle"></i>
+        Insufficient Stock
+      </h2>
+      <button class="close-modal-btn" (click)="closeStockError()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body error-body">
+      <p class="error-text">{{ stockErrorMessage() }}</p>
+      <div class="error-actions">
+        <button class="action-btn-large reject" (click)="closeStockError()">
+          <i class="fas fa-arrow-left"></i>
+          Back to Orders
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

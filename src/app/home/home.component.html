@@ -1,0 +1,392 @@
+<!-- Hero Section -->
+<section class="hero-section">
+  <div
+    class="hero-background"
+    [ngStyle]="heroBackgroundUrl ? { 'background-image': 'url(' + heroBackgroundUrl + ')' } : null"
+  >
+    <div class="hero-overlay"></div>
+    <div class="hero-blur"></div>
+  </div>
+
+  <div class="hero-content">
+    <div class="hero-text">
+      <h1 class="hero-title">
+        {{ heroTitle }}
+      </h1>
+      <p class="hero-subtitle">
+        {{ heroSubtitle }}
+      </p>
+      <div class="hero-actions">
+        <button class="btn-primary" [routerLink]="primaryButtonLink">
+          <i class="fas fa-eye"></i>
+          {{ primaryButtonText }}
+        </button>
+        <button class="btn-secondary" [routerLink]="secondaryButtonLink">
+          <i class="fas fa-ruler-combined"></i>
+          {{ secondaryButtonText }}
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Advertisements Marquee Section -->
+<section class="ads-marquee-section" *ngIf="advertisements.length > 0">
+  <div class="ads-marquee-wrapper">
+    <div class="ads-marquee-track">
+      @for (ad of advertisements; track ad.imageUrl + '_1') {
+      <div class="ad-item">
+        <a [href]="ad.link || '#'" [target]="ad.link ? '_blank' : '_self'" class="ad-link">
+          <img
+            [src]="ad.imageUrl"
+            [alt]="ad.alt || 'Advertisement'"
+            class="ad-image"
+            loading="lazy"
+          />
+        </a>
+      </div>
+      } @for (ad of advertisements; track ad.imageUrl + '_2') {
+      <div class="ad-item">
+        <a [href]="ad.link || '#'" [target]="ad.link ? '_blank' : '_self'" class="ad-link">
+          <img
+            [src]="ad.imageUrl"
+            [alt]="ad.alt || 'Advertisement'"
+            class="ad-image"
+            loading="lazy"
+          />
+        </a>
+      </div>
+      } @for (ad of advertisements; track ad.imageUrl + '_3') {
+      <div class="ad-item">
+        <a [href]="ad.link || '#'" [target]="ad.link ? '_blank' : '_self'" class="ad-link">
+          <img
+            [src]="ad.imageUrl"
+            [alt]="ad.alt || 'Advertisement'"
+            class="ad-image"
+            loading="lazy"
+          />
+        </a>
+      </div>
+      } @for (ad of advertisements; track ad.imageUrl + '_4') {
+      <div class="ad-item">
+        <a [href]="ad.link || '#'" [target]="ad.link ? '_blank' : '_self'" class="ad-link">
+          <img
+            [src]="ad.imageUrl"
+            [alt]="ad.alt || 'Advertisement'"
+            class="ad-image"
+            loading="lazy"
+          />
+        </a>
+      </div>
+      } @for (ad of advertisements; track ad.imageUrl + '_5') {
+      <div class="ad-item">
+        <a [href]="ad.link || '#'" [target]="ad.link ? '_blank' : '_self'" class="ad-link">
+          <img
+            [src]="ad.imageUrl"
+            [alt]="ad.alt || 'Advertisement'"
+            class="ad-image"
+            loading="lazy"
+          />
+        </a>
+      </div>
+      } @for (ad of advertisements; track ad.imageUrl + '_6') {
+      <div class="ad-item">
+        <a [href]="ad.link || '#'" [target]="ad.link ? '_blank' : '_self'" class="ad-link">
+          <img
+            [src]="ad.imageUrl"
+            [alt]="ad.alt || 'Advertisement'"
+            class="ad-image"
+            loading="lazy"
+          />
+        </a>
+      </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section" *ngIf="features.length > 0">
+  <div class="section-header">
+    <h2 class="section-title">
+      <i class="fas fa-star"></i>
+      Why Choose Us
+    </h2>
+    <p class="section-subtitle">Experience the difference of true craftsmanship</p>
+  </div>
+
+  <div class="features-grid">
+    @for (feature of features; track feature.title) {
+    <div class="feature-card">
+      <div class="feature-icon">
+        <i [class]="feature.icon"></i>
+      </div>
+      <h3 class="feature-title">{{ feature.title }}</h3>
+      <p class="feature-description">{{ feature.description }}</p>
+    </div>
+    }
+  </div>
+</section>
+
+<!-- Customer Feedback Section with Carousel -->
+<section class="feedbacks-section" *ngIf="latestFeedbacks.length > 0">
+  <div class="section-header">
+    <h2 class="section-title">
+      <i class="fas fa-comments"></i>
+      Customer Feedback
+    </h2>
+    <p class="section-subtitle">Authentic reviews from verified customers</p>
+  </div>
+
+  <div *ngIf="feedbacksLoading" class="loading-feedbacks">
+    <i class="fas fa-spinner fa-spin"></i>
+    <span>Loading feedbacks...</span>
+  </div>
+
+  <div *ngIf="!feedbacksLoading" class="feedbacks-carousel-container">
+    <!-- Navigation Buttons -->
+    <button
+      class="carousel-btn carousel-btn-prev"
+      (click)="prevFeedback()"
+      [disabled]="currentFeedbackIndex === 0"
+      aria-label="Previous feedback"
+    >
+      <i class="fas fa-chevron-left"></i>
+    </button>
+
+    <!-- Carousel Track -->
+    <div class="feedbacks-carousel">
+      <div
+        class="carousel-track"
+        [style.transform]="'translateX(-' + currentFeedbackIndex * 100 + '%)'"
+      >
+        @for (feedback of latestFeedbacks; track feedback._id) {
+        <div class="feedback-card">
+          <div class="feedback-card-header">
+            <div class="feedback-user-info">
+              <div class="feedback-avatar">
+                @if (feedback.userProfileImage) {
+                <img
+                  [src]="'http://localhost:3000' + feedback.userProfileImage"
+                  [alt]="feedback.userName"
+                  class="avatar-img"
+                  loading="lazy"
+                  decoding="async"
+                />
+                } @else {
+                {{ feedback.userName.charAt(0) }}
+                }
+              </div>
+              <div>
+                <h3 class="feedback-user-name">{{ feedback.userName }}</h3>
+                <p class="feedback-user-email">
+                  <i class="fas fa-envelope"></i>
+                  {{ feedback.userEmail }}
+                </p>
+                <p class="feedback-category">
+                  <i class="fas fa-tag"></i>
+                  {{ feedback.category | uppercase }}
+                </p>
+              </div>
+            </div>
+            <div class="feedback-rating">
+              @for (star of getStars(feedback.rating); track $index) {
+              <i class="fas fa-star" [class.filled]="star"></i>
+              }
+            </div>
+          </div>
+
+          <h4 class="feedback-title">{{ feedback.title }}</h4>
+          <p class="feedback-comment">{{ feedback.description }}</p>
+
+          <div class="feedback-footer">
+            <div class="feedback-meta">
+              <span class="feedback-date">
+                <i class="far fa-calendar"></i>
+                {{ feedback.createdAt | date : 'medium' }}
+              </span>
+              <span class="feedback-rating-badge">
+                <i class="fas fa-star"></i>
+                {{ feedback.rating }}/5
+              </span>
+            </div>
+            <button
+              class="like-button"
+              [class.liked]="isLikedByCurrentUser(feedback)"
+              (click)="toggleLike(feedback)"
+            >
+              <i class="fas fa-heart"></i>
+              <span class="like-count">{{ feedback.likes || 0 }}</span>
+            </button>
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+
+    <!-- Navigation Button Right -->
+    <button
+      class="carousel-btn carousel-btn-next"
+      (click)="nextFeedback()"
+      [disabled]="currentFeedbackIndex >= latestFeedbacks.length - 1"
+      aria-label="Next feedback"
+    >
+      <i class="fas fa-chevron-right"></i>
+    </button>
+  </div>
+
+  <!-- Carousel Indicators -->
+  <div *ngIf="!feedbacksLoading && latestFeedbacks.length > 0" class="carousel-indicators">
+    @for (feedback of latestFeedbacks; track $index; let i = $index) {
+    <button
+      class="indicator-dot"
+      [class.active]="i === currentFeedbackIndex"
+      (click)="goToFeedback(i)"
+      [attr.aria-label]="'Go to feedback #' + (i + 1)"
+      [attr.aria-current]="i === currentFeedbackIndex ? 'true' : null"
+    ></button>
+    }
+  </div>
+
+  <div class="feedbacks-cta">
+    <button class="btn-primary" routerLink="/feedback">
+      <i class="fas fa-comments"></i>
+      View All Feedback
+    </button>
+  </div>
+</section>
+
+<!-- Privacy Policy Modal -->
+<div
+  class="modal-overlay"
+  *ngIf="showPrivacyModal"
+  (click)="closePrivacyModal()"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="privacyModalTitle"
+>
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 id="privacyModalTitle"><i class="fas fa-shield-alt"></i> Privacy Policy</h2>
+      <button class="modal-close" (click)="closePrivacyModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <h3>Your Privacy Matters</h3>
+      <p>
+        At LOCAL CRAFT, we are committed to protecting your privacy and ensuring the security of
+        your personal information.
+      </p>
+
+      <h4>Information We Collect</h4>
+      <ul>
+        <li>Name and contact information</li>
+        <li>Shipping and billing addresses</li>
+        <li>Payment information (processed securely)</li>
+        <li>Order history and preferences</li>
+      </ul>
+
+      <h4>How We Use Your Information</h4>
+      <ul>
+        <li>Process and fulfill your orders</li>
+        <li>Communicate about your orders and account</li>
+        <li>Improve our products and services</li>
+        <li>Send promotional offers (with your consent)</li>
+      </ul>
+
+      <h4>Data Security</h4>
+      <p>
+        We implement industry-standard security measures to protect your data from unauthorized
+        access, disclosure, or misuse.
+      </p>
+
+      <h4>Your Rights</h4>
+      <p>
+        You have the right to access, update, or delete your personal information at any time.
+        Contact us at privacy@localcraft.com for assistance.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Returns Policy Modal -->
+<div
+  class="modal-overlay"
+  *ngIf="showReturnsModal"
+  (click)="closeReturnsModal()"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="returnsModalTitle"
+>
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 id="returnsModalTitle"><i class="fas fa-undo-alt"></i> Shipping & Returns</h2>
+      <button class="modal-close" (click)="closeReturnsModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <h3>Shipping Information</h3>
+      <p><strong>Free Shipping:</strong> On all orders over 500 EGP within Egypt</p>
+      <p><strong>Standard Delivery:</strong> 3-5 business days</p>
+      <p><strong>Express Delivery:</strong> 1-2 business days (additional charges apply)</p>
+
+      <h4>Return Policy</h4>
+      <p>
+        We want you to be completely satisfied with your purchase. If you're not happy, we offer
+        easy returns within 30 days.
+      </p>
+
+      <h4>Return Conditions</h4>
+      <ul>
+        <li>Items must be unworn and in original condition</li>
+        <li>Original tags and packaging must be intact</li>
+        <li>Return shipping costs are covered by LOCAL CRAFT</li>
+        <li>Refunds processed within 5-7 business days</li>
+      </ul>
+
+      <h4>How to Return</h4>
+      <ol>
+        <li>Contact our support team at returns@localcraft.com</li>
+        <li>Receive your return authorization number</li>
+        <li>Pack the item securely with all original materials</li>
+        <li>Ship using our prepaid return label</li>
+      </ol>
+
+      <p>
+        <strong>Note:</strong> Custom-made and tailored items cannot be returned unless defective.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Orders Modal -->
+<div
+  class="modal-overlay"
+  *ngIf="showOrdersModal"
+  (click)="closeOrdersModal()"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="ordersModalTitle"
+>
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 id="ordersModalTitle"><i class="fas fa-shopping-bag"></i> My Orders</h2>
+      <button class="modal-close" (click)="closeOrdersModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="orders-placeholder">
+        <i class="fas fa-box-open"></i>
+        <h3>No Orders Yet</h3>
+        <p>You haven't placed any orders. Start shopping to see your orders here!</p>
+        <button class="btn-primary" routerLink="/products" (click)="closeOrdersModal()">
+          <i class="fas fa-shopping-cart"></i>
+          Browse Products
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

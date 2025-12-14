@@ -1,0 +1,58 @@
+<div class="modal-overlay" *ngIf="isOpen" (click)="onClose()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>
+        <i class="fas fa-truck"></i>
+        Edit Delivery Fee
+      </h2>
+      <button class="close-btn" (click)="onClose()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Success/Error Message -->
+      <div class="message" *ngIf="message()" [ngClass]="message()!.type">
+        <i
+          class="fas"
+          [ngClass]="message()!.type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'"
+        ></i>
+        <span>{{ message()!.text }}</span>
+      </div>
+
+      <div class="form-group">
+        <label for="deliveryFee">
+          <i class="fas fa-coins"></i>
+          Delivery Fee (EGP)
+        </label>
+        <input
+          id="deliveryFee"
+          type="number"
+          [(ngModel)]="deliveryFee"
+          min="0"
+          step="0.01"
+          [disabled]="loading()"
+          class="form-input"
+          placeholder="Enter delivery fee"
+        />
+        <small>Current fee: {{ deliveryFee() }} EGP</small>
+      </div>
+
+      <div class="info-box">
+        <i class="fas fa-info-circle"></i>
+        <p>This delivery fee will be added to all cart totals during checkout.</p>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="onClose()" [disabled]="loading()">
+        <i class="fas fa-times"></i>
+        Cancel
+      </button>
+      <button class="btn-save" (click)="updateDeliveryFee()" [disabled]="loading()">
+        <i class="fas" [ngClass]="loading() ? 'fa-spinner fa-spin' : 'fa-save'"></i>
+        {{ loading() ? 'Saving...' : 'Save Changes' }}
+      </button>
+    </div>
+  </div>
+</div>

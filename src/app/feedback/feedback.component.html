@@ -1,0 +1,256 @@
+<div class="feedback-page">
+  <!-- Success Message -->
+  <div class="success-message" *ngIf="showSuccessMessage">
+    <i class="fas fa-check-circle"></i>
+    <span>Feedback submitted successfully! Our team will review it shortly.</span>
+  </div>
+
+  <!-- Error Message -->
+  <div class="error-message" *ngIf="showErrorMessage">
+    <i class="fas fa-exclamation-circle"></i>
+    <span>{{ errorMessage }}</span>
+  </div>
+
+  <!-- Not Logged In Alert -->
+  <div class="alert alert-info" *ngIf="!isLoggedIn">
+    <i class="fas fa-info-circle"></i>
+    <div>
+      <h4>Please Log In</h4>
+      <p>
+        You need to be logged in to submit feedback.
+        <a routerLink="/login" class="link">Click here to login</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- Account Not Complete Alert -->
+  <div class="alert alert-warning" *ngIf="isLoggedIn && !userAccountCompleted">
+    <i class="fas fa-exclamation-triangle"></i>
+    <div>
+      <h4>Complete Your Profile</h4>
+      <p>
+        You need to complete your profile before submitting feedback.
+        <a routerLink="/my-profile" class="link">Click here to complete</a>
+      </p>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Header -->
+    <div class="page-header">
+      <h1 class="page-title">
+        <i class="fas fa-comments"></i>
+        Customer Feedback
+      </h1>
+      <p class="page-subtitle">We value your opinion! Help us improve by sharing your feedback.</p>
+    </div>
+
+    <div class="feedback-layout">
+      <!-- Quick Add Button (When Account Completed) -->
+      <div class="quick-add-section" *ngIf="isLoggedIn && userAccountCompleted">
+        <button class="btn-quick-add" (click)="scrollToForm()">
+          <i class="fas fa-plus-circle"></i>
+          Add Your Feedback
+        </button>
+      </div>
+
+      <!-- Feedback Form Section -->
+      <div class="form-section" *ngIf="isLoggedIn && userAccountCompleted" #feedbackForm>
+        <div class="form-card">
+          <h2 class="section-title">
+            <i class="fas fa-edit"></i>
+            Share Your Feedback
+          </h2>
+
+          <form (ngSubmit)="submitFeedback()" class="feedback-form">
+            <!-- Title Input -->
+            <div class="form-group">
+              <label for="title" class="form-label">
+                <i class="fas fa-heading"></i>
+                Feedback Title <span class="required">*</span>
+              </label>
+              <input
+                type="text"
+                id="title"
+                class="form-input"
+                [(ngModel)]="feedbackTitle"
+                name="title"
+                placeholder="e.g., Great quality products"
+                maxlength="100"
+                [disabled]="isSubmitting"
+              />
+              <small class="char-count">{{ feedbackTitle.length }}/100</small>
+            </div>
+
+            <!-- Description Input -->
+            <div class="form-group">
+              <label for="description" class="form-label">
+                <i class="fas fa-align-left"></i>
+                Description <span class="required">*</span>
+              </label>
+              <textarea
+                id="description"
+                class="form-textarea"
+                [(ngModel)]="feedbackDescription"
+                name="description"
+                placeholder="Tell us more about your experience..."
+                maxlength="1000"
+                rows="6"
+                [disabled]="isSubmitting"
+              ></textarea>
+              <small class="char-count">{{ feedbackDescription.length }}/1000</small>
+            </div>
+
+            <!-- Rating Input -->
+            <div class="form-group">
+              <label for="rating" class="form-label">
+                <i class="fas fa-star"></i>
+                Rating <span class="required">*</span>
+              </label>
+              <div class="rating-input">
+                @for (i of [1, 2, 3, 4, 5]; track i) {
+                <button
+                  type="button"
+                  class="star-btn"
+                  [class.active]="feedbackRating >= i"
+                  (click)="feedbackRating = i"
+                  [disabled]="isSubmitting"
+                >
+                  <i class="fas fa-star"></i>
+                </button>
+                }
+              </div>
+              <div class="rating-label">
+                @switch (feedbackRating) { @case (1) {
+                <span class="rating-text poor">Poor</span>
+                } @case (2) {
+                <span class="rating-text fair">Fair</span>
+                } @case (3) {
+                <span class="rating-text good">Good</span>
+                } @case (4) {
+                <span class="rating-text very-good">Very Good</span>
+                } @case (5) {
+                <span class="rating-text excellent">Excellent</span>
+                } }
+              </div>
+            </div>
+
+            <!-- Category Input -->
+            <div class="form-group">
+              <label for="category" class="form-label">
+                <i class="fas fa-list"></i>
+                Category <span class="required">*</span>
+              </label>
+              <select
+                id="category"
+                class="form-select"
+                [(ngModel)]="feedbackCategory"
+                name="category"
+                [disabled]="isSubmitting"
+              >
+                @for (cat of categories; track cat.value) {
+                <option [value]="cat.value">{{ cat.label }}</option>
+                }
+              </select>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn-submit" [disabled]="isSubmitting">
+              <span *ngIf="!isSubmitting">
+                <i class="fas fa-paper-plane"></i>
+                Submit Feedback
+              </span>
+              <span *ngIf="isSubmitting">
+                <i class="fas fa-spinner fa-spin"></i>
+                Submitting...
+              </span>
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Feedbacks List Section -->
+      <div class="feedbacks-section">
+        <div class="section-header">
+          <h2 class="section-title">
+            <i class="fas fa-list"></i>
+            Approved Feedback
+          </h2>
+          <span class="feedbacks-count">{{ allFeedbacks.length }}</span>
+        </div>
+
+        <div *ngIf="isLoadingFeedbacks" class="loading-message">
+          <i class="fas fa-spinner fa-spin"></i>
+          <span>Loading feedbacks...</span>
+        </div>
+
+        <div *ngIf="!isLoadingFeedbacks && allFeedbacks.length === 0" class="empty-message">
+          <i class="fas fa-inbox"></i>
+          <p>No approved feedback yet. Be the first to share!</p>
+        </div>
+
+        <div *ngIf="!isLoadingFeedbacks && allFeedbacks.length > 0" class="feedbacks-list">
+          @for (feedback of allFeedbacks; track feedback._id) {
+          <div class="feedback-card">
+            <div class="feedback-card-header">
+              <div class="feedback-user-info">
+                <div class="feedback-avatar">
+                  @if (feedback.userProfileImage) {
+                  <img
+                    [src]="'http://localhost:3000' + feedback.userProfileImage"
+                    [alt]="feedback.userName"
+                    class="avatar-img"
+                  />
+                  } @else {
+                  {{ feedback.userName.charAt(0) }}
+                  }
+                </div>
+                <div>
+                  <h3 class="feedback-user-name">{{ feedback.userName }}</h3>
+                  <p class="feedback-user-email">
+                    <i class="fas fa-envelope"></i>
+                    {{ feedback.userEmail }}
+                  </p>
+                  <p class="feedback-category">
+                    <i class="fas fa-tag"></i>
+                    {{ feedback.category | uppercase }}
+                  </p>
+                </div>
+              </div>
+              <div class="feedback-rating">
+                @for (star of getStars(feedback.rating); track $index) {
+                <i class="fas fa-star" [class.filled]="star"></i>
+                }
+              </div>
+            </div>
+
+            <h4 class="feedback-title">{{ feedback.title }}</h4>
+            <p class="feedback-comment">{{ feedback.description }}</p>
+
+            <div class="feedback-footer">
+              <div class="feedback-meta">
+                <span class="feedback-date">
+                  <i class="far fa-calendar"></i>
+                  {{ feedback.createdAt | date : 'medium' }}
+                </span>
+                <span class="feedback-rating-badge">
+                  <i class="fas fa-star"></i>
+                  {{ feedback.rating }}/5
+                </span>
+              </div>
+              <button
+                class="like-button"
+                [class.liked]="isLikedByCurrentUser(feedback)"
+                (click)="toggleLike(feedback)"
+              >
+                <i class="fas fa-heart"></i>
+                <span class="like-count">{{ feedback.likes || 0 }}</span>
+              </button>
+            </div>
+          </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

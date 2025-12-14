@@ -1,0 +1,1738 @@
+<div class="admin-dashboard-container">
+  <!-- Main Content -->
+  <div class="dashboard-main">
+    <!-- Sidebar with Tabs -->
+    <aside class="sidebar">
+      <div class="sidebar-menu">
+        <button
+          [class.active]="activeTab === 'dashboard'"
+          (click)="setActiveTab('dashboard')"
+          class="menu-item"
+        >
+          <i class="fas fa-chart-line"></i>
+          <span>Dashboard</span>
+        </button>
+        <button
+          [class.active]="activeTab === 'users'"
+          (click)="setActiveTab('users')"
+          class="menu-item"
+        >
+          <i class="fas fa-users"></i>
+          <span>Users ({{ users.length }})</span>
+        </button>
+        <button
+          [class.active]="activeTab === 'admins'"
+          (click)="setActiveTab('admins')"
+          class="menu-item"
+        >
+          <i class="fas fa-user-shield"></i>
+          <span>Admins</span>
+        </button>
+        <button
+          [class.active]="activeTab === 'feedback'"
+          (click)="setActiveTab('feedback')"
+          class="menu-item"
+        >
+          <i class="fas fa-comments"></i>
+          <span>Feedback ({{ pendingFeedbacks.length }})</span>
+        </button>
+        <button
+          [class.active]="activeTab === 'contact'"
+          (click)="setActiveTab('contact')"
+          class="menu-item"
+        >
+          <i class="fas fa-phone"></i>
+          <span>Contact Requests ({{ contactRequests.length }})</span>
+        </button>
+        <button
+          [class.active]="activeTab === 'edit-home'"
+          (click)="setActiveTab('edit-home')"
+          class="menu-item"
+        >
+          <i class="fas fa-edit"></i>
+          <span>Edit Home</span>
+        </button>
+        <button
+          [class.active]="activeTab === 'edit-about'"
+          (click)="setActiveTab('edit-about')"
+          class="menu-item"
+        >
+          <i class="fas fa-info-circle"></i>
+          <span>Edit About</span>
+        </button>
+        <button
+          [class.active]="activeTab === 'edit-products'"
+          (click)="setActiveTab('edit-products')"
+          class="menu-item"
+        >
+          <i class="fas fa-box"></i>
+          <span>Edit Products</span>
+        </button>
+        <a routerLink="/admin/orders" class="menu-item menu-link" title="Manage Orders">
+          <i class="fas fa-shopping-bag"></i>
+          <span>Requests</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Content Area -->
+    <main class="dashboard-content">
+      <!-- Success Message -->
+      <div *ngIf="successMessage" class="success-alert">
+        <i class="fas fa-check-circle"></i>
+        <span>{{ successMessage }}</span>
+      </div>
+
+      <!-- Contact Requests Tab -->
+      <div *ngIf="activeTab === 'contact'" class="tab-content">
+        <div class="content-header contact-header">
+          <div>
+            <h2>Contact Requests</h2>
+            <p class="subtitle">Inbox of reach-outs from your customers</p>
+          </div>
+          <div class="contact-legend">
+            <span class="legend-pill pending"><i class="fas fa-hourglass-half"></i> Pending</span>
+            <span class="legend-pill approved"><i class="fas fa-check"></i> Approved</span>
+            <span class="legend-pill rejected"><i class="fas fa-times"></i> Rejected</span>
+          </div>
+        </div>
+
+        <div *ngIf="contactLoading" class="loading-state">
+          <i class="fas fa-spinner fa-spin"></i>
+          <p>Loading contact requests...</p>
+        </div>
+
+        <div *ngIf="!contactLoading && contactRequests.length === 0" class="empty-state">
+          <i class="fas fa-inbox"></i>
+          <h3>No contact requests yet</h3>
+          <p>Requests will appear here once users submit them.</p>
+        </div>
+
+        <div class="requests-list" *ngIf="!contactLoading && contactRequests.length > 0">
+          <div class="request-card" *ngFor="let req of contactRequests" [ngClass]="req.status">
+            <div class="request-header">
+              <div class="request-user">
+                <div class="user-photo" *ngIf="req.userProfileImage">
+                  <img
+                    [src]="'http://localhost:3000' + req.userProfileImage"
+                    [alt]="req.userName"
+                  />
+                </div>
+                <div class="user-photo no-photo" *ngIf="!req.userProfileImage">
+                  <i class="fas fa-user"></i>
+                </div>
+                <div class="user-meta">
+                  <h4>{{ req.userName }}</h4>
+                  <p class="email"><i class="fas fa-envelope"></i> {{ req.userEmail }}</p>
+                  <p class="phone"><i class="fas fa-phone"></i> {{ req.userPhone }}</p>
+                </div>
+              </div>
+              <span
+                class="badge"
+                [class.pending]="req.status === 'pending'"
+                [class.approved]="req.status === 'approved'"
+                [class.rejected]="req.status === 'rejected'"
+                >{{ req.status | uppercase }}</span
+              >
+            </div>
+
+            <div class="request-body">
+              <div class="reason">
+                <span class="label"><i class="fas fa-comment-dots"></i> Message</span>
+                <p>{{ req.reason }}</p>
+              </div>
+              <div class="modal-body">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Brand Name</label>
+                    <input
+                      type="text"
+                      [(ngModel)]="navbarBrandName"
+                      (input)="onNavbarBrandNameInput($event)"
+                      placeholder="Brand Name"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label>Brand Tagline (optional)</label>
+                    <input
+                      type="text"
+                      [(ngModel)]="navbarBrandTagline"
+                      (input)="onNavbarBrandTaglineInput($event)"
+                      placeholder="Tagline"
+                    />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Brand Logo</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    (change)="onNavbarBrandLogoSelected($event)"
+                  />
+                  <div class="upload-preview" *ngIf="navbarBrandLogoPreview">
+                    <img [src]="navbarBrandLogoPreview" alt="Brand Logo" />
+                  </div>
+                  <small class="hint">Text auto-saves; click Save to upload logo.</small>
+                </div>
+                <button class="btn-reject" (click)="rejectContact(req)">
+                  <i class="fas fa-times"></i> Reject
+                </button>
+              </div>
+            </div>
+            <div class="request-actions locked" *ngIf="req.status !== 'pending'">
+              <p class="locked-note">
+                <i class="fas fa-lock"></i> Request is {{ req.status }} and can no longer be
+                modified.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dashboard Tab (Redesigned) -->
+      <div *ngIf="activeTab === 'dashboard'" class="tab-content redesigned">
+        <div class="content-header compact">
+          <h2>Admin Dashboard</h2>
+          <p class="subtitle">Fast overview & quick actions</p>
+        </div>
+
+        <section class="grid two-cols">
+          <!-- Metrics Panel -->
+          <div class="panel metrics-overview">
+            <h3 class="panel-title"><i class="fas fa-chart-pie"></i> Overview</h3>
+            <div class="metrics-grid-overview">
+              <div class="metric-card-overview">
+                <div class="metric-icon-overview"><i class="fas fa-users"></i></div>
+                <div class="metric-content">
+                  <p class="metric-label">Total Users</p>
+                  <h3 class="metric-value">{{ users.length }}</h3>
+                </div>
+              </div>
+              <div class="metric-card-overview">
+                <div class="metric-icon-overview"><i class="fas fa-user-shield"></i></div>
+                <div class="metric-content">
+                  <p class="metric-label">Admins</p>
+                  <h3 class="metric-value">{{ getAdminCount() }}</h3>
+                </div>
+              </div>
+              <div class="metric-card-overview">
+                <div class="metric-icon-overview"><i class="fas fa-ban"></i></div>
+                <div class="metric-content">
+                  <p class="metric-label">Banned</p>
+                  <h3 class="metric-value">{{ getBannedCount() }}</h3>
+                </div>
+              </div>
+              <div class="metric-card-overview">
+                <div class="metric-icon-overview"><i class="fas fa-box"></i></div>
+                <div class="metric-content">
+                  <p class="metric-label">Products</p>
+                  <h3 class="metric-value">{{ products.length }}</h3>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Actions -->
+          <div class="panel quick">
+            <div class="quick-grid">
+              <button class="quick-item" (click)="setActiveTab('users')">
+                <i class="fas fa-users"></i>
+                <span>Manage Users</span>
+              </button>
+              <button class="quick-item" (click)="setActiveTab('admins')">
+                <i class="fas fa-user-shield"></i>
+                <span>Manage Admins</span>
+              </button>
+              <button class="quick-item" routerLink="/admin/orders">
+                <i class="fas fa-shopping-bag"></i>
+                <span>Manage Orders</span>
+              </button>
+              <button class="quick-item" (click)="setActiveTab('edit-products')">
+                <i class="fas fa-box"></i>
+                <span>Edit Products</span>
+              </button>
+              <button class="quick-item" (click)="setActiveTab('edit-home')">
+                <i class="fas fa-home"></i>
+                <span>Edit Home</span>
+              </button>
+              <button class="quick-item" (click)="setActiveTab('edit-about')">
+                <i class="fas fa-info-circle"></i>
+                <span>Edit About</span>
+              </button>
+              <button class="quick-item" (click)="setActiveTab('feedback')">
+                <i class="fas fa-comments"></i>
+                <span>Review Feedback</span>
+              </button>
+              <button class="quick-item" (click)="setActiveTab('contact')">
+                <i class="fas fa-envelope"></i>
+                <span>Contact Requests</span>
+              </button>
+              <button class="quick-item" (click)="openNavbarBrandModal()">
+                <i class="fas fa-signature"></i>
+                <span>Edit Navbar Name & Logo</span>
+              </button>
+              <!-- Analytics quick action removed per request -->
+              <!-- Settings quick action removed per request -->
+              <button class="quick-item" (click)="openDeliveryFeeModal()">
+                <i class="fas fa-truck"></i>
+                <span>Edit Delivery Fee</span>
+              </button>
+              <button class="quick-item danger" (click)="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Stats Box -->
+          <div class="panel metrics">
+            <h3 class="panel-title"><i class="fas fa-chart-bar"></i> Quick Stats</h3>
+            <div class="metrics-grid">
+              <div class="metric-card">
+                <div class="metric-icon"><i class="fas fa-paper-plane"></i></div>
+                <div class="metric-label">Orders Sent</div>
+                <div class="metric-value">{{ dashboardStats.ordersSent }}</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-icon"><i class="fas fa-coins"></i></div>
+                <div class="metric-label">Total Revenue</div>
+                <div class="metric-value">
+                  EGP {{ dashboardStats.totalRevenue | number : '1.0-0' }}
+                </div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-icon"><i class="fas fa-warehouse"></i></div>
+                <div class="metric-label">Available Stock</div>
+                <div class="metric-value">{{ dashboardStats.totalStockAvailable }}</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-icon"><i class="fas fa-boxes"></i></div>
+                <div class="metric-label">Products Listed</div>
+                <div class="metric-value">{{ dashboardStats.totalProductsListed }}</div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Feedback Tab -->
+      <div *ngIf="activeTab === 'feedback'" class="tab-content">
+        <div class="feedback-header">
+          <div>
+            <h2>Feedback Management</h2>
+            <p>Review and manage customer feedback</p>
+          </div>
+          <div class="feedback-filters">
+            <button
+              *ngFor="let filter of ['pending', 'approved', 'rejected', 'all']"
+              [class.active]="feedbackFilter === filter"
+              (click)="setFeedbackFilter($any(filter))"
+              class="filter-btn"
+            >
+              {{ filter | uppercase }}
+            </button>
+          </div>
+        </div>
+
+        <div class="feedback-content">
+          <!-- Feedbacks List -->
+          <div class="feedbacks-list-container">
+            <div *ngIf="feedbacksLoading" class="loading-message">
+              <i class="fas fa-spinner fa-spin"></i>
+              <span>Loading feedbacks...</span>
+            </div>
+
+            <div
+              *ngIf="!feedbacksLoading && getFilteredFeedbacks().length === 0"
+              class="empty-message"
+            >
+              <i class="fas fa-inbox"></i>
+              <p>No {{ feedbackFilter }} feedbacks</p>
+            </div>
+
+            <div
+              *ngIf="!feedbacksLoading && getFilteredFeedbacks().length > 0"
+              class="feedbacks-list"
+            >
+              <div
+                *ngFor="let feedback of getFilteredFeedbacks()"
+                [class.active]="selectedFeedback?._id === feedback._id"
+                [ngClass]="'status-' + feedback.status"
+                (click)="selectFeedback(feedback)"
+                class="feedback-item"
+              >
+                <div class="feedback-item-header">
+                  <h4>{{ feedback.title }}</h4>
+                  <span [ngClass]="'status-badge status-' + feedback.status">
+                    {{ feedback.status | uppercase }}
+                  </span>
+                </div>
+                <p class="feedback-item-user">
+                  <i class="fas fa-user"></i>
+                  {{ feedback.userName }}
+                </p>
+                <p class="feedback-item-snippet" *ngIf="feedback.description">
+                  {{ feedback.description | slice : 0 : 120 }}
+                  <ng-container *ngIf="feedback.description.length > 120">...</ng-container>
+                </p>
+                <div class="feedback-item-meta">
+                  <span class="rating">
+                    <i class="fas fa-star"></i>
+                    {{ feedback.rating }}/5
+                  </span>
+                  <span class="category">{{ feedback.category | uppercase }}</span>
+                  <span class="deleted" *ngIf="feedback.deletedByUser">
+                    <i class="fas fa-trash"></i>
+                    Deleted by User
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Feedback Details -->
+          <div *ngIf="selectedFeedback" class="feedback-details-container">
+            <div class="feedback-details-header">
+              <h3>{{ selectedFeedback.title }}</h3>
+              <span [ngClass]="'status-badge status-' + selectedFeedback.status">
+                {{ selectedFeedback.status | uppercase }}
+              </span>
+            </div>
+
+            <div class="feedback-details">
+              <div class="detail-field">
+                <label>User Name:</label>
+                <p>{{ selectedFeedback.userName }}</p>
+              </div>
+
+              <div class="detail-field">
+                <label>Email:</label>
+                <p>{{ selectedFeedback.userEmail }}</p>
+              </div>
+
+              <div class="detail-field">
+                <label>Rating:</label>
+                <p>
+                  @for (i of [1, 2, 3, 4, 5]; track i) {
+                  <i class="fas fa-star" [class.filled]="i <= selectedFeedback!.rating"></i>
+                  }
+                  {{ selectedFeedback.rating }}/5
+                </p>
+              </div>
+
+              <div class="detail-field">
+                <label>Category:</label>
+                <p>{{ selectedFeedback.category | uppercase }}</p>
+              </div>
+
+              <div class="detail-field">
+                <label>Description:</label>
+                <p>{{ selectedFeedback.description }}</p>
+              </div>
+
+              <div class="detail-field" *ngIf="selectedFeedback.adminNotes">
+                <label>Admin Notes:</label>
+                <p>{{ selectedFeedback.adminNotes }}</p>
+              </div>
+
+              <!-- Admin Actions -->
+              <div *ngIf="selectedFeedback.status === 'pending'" class="feedback-actions">
+                <textarea
+                  [(ngModel)]="feedbackAdminNotes"
+                  placeholder="Add admin notes (optional)"
+                  class="admin-notes"
+                ></textarea>
+
+                <div class="action-buttons">
+                  <button (click)="approveFeedback()" class="btn-approve">
+                    <i class="fas fa-check"></i>
+                    Approve
+                  </button>
+                  <button (click)="rejectFeedback()" class="btn-reject">
+                    <i class="fas fa-times"></i>
+                    Reject
+                  </button>
+                </div>
+              </div>
+
+              <div *ngIf="selectedFeedback.status !== 'pending'" class="delete-action">
+                <button (click)="deleteFeedback(selectedFeedback!._id || '')" class="btn-delete">
+                  <i class="fas fa-trash"></i>
+                  Delete Feedback
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="!selectedFeedback" class="no-selection">
+            <i class="fas fa-arrow-left"></i>
+            <p>Select a feedback to view details</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Edit Home Tab -->
+      <div *ngIf="activeTab === 'edit-home'" class="tab-content edit-home-tab">
+        <div class="edit-home-header">
+          <div class="header-content">
+            <div class="header-icon">
+              <i class="fas fa-home"></i>
+            </div>
+            <div class="header-text">
+              <h2>Edit Home Page</h2>
+              <p class="subtitle">Customize your home page content, images and features</p>
+            </div>
+          </div>
+          <button class="save-btn" type="button" (click)="saveHomeContent()">
+            <i class="fas fa-save"></i>
+            <span>Save Changes</span>
+          </button>
+        </div>
+
+        <div class="edit-home-sections">
+          <!-- Hero Section -->
+          <div class="edit-section hero-section">
+            <div class="section-header">
+              <div class="section-icon">
+                <i class="fas fa-image"></i>
+              </div>
+              <div class="section-info">
+                <h3>Hero Section</h3>
+                <p>Main banner that appears at the top of your homepage</p>
+              </div>
+            </div>
+
+            <div class="section-body">
+              <div class="hero-image-upload">
+                <label class="upload-label">
+                  <i class="fas fa-images"></i>
+                  Background Image
+                </label>
+                <div
+                  class="upload-area"
+                  (click)="heroFile.click()"
+                  [class.has-image]="homeContent.heroBackgroundUrl"
+                >
+                  <input
+                    #heroFile
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    (change)="onHomeHeroImageSelected($event)"
+                  />
+                  <div
+                    class="upload-preview"
+                    *ngIf="homeContent.heroBackgroundUrl"
+                    [ngStyle]="{ 'background-image': 'url(' + homeContent.heroBackgroundUrl + ')' }"
+                  >
+                    <div class="upload-overlay">
+                      <i class="fas fa-camera"></i>
+                      <span>Change Image</span>
+                    </div>
+                  </div>
+                  <div class="upload-placeholder" *ngIf="!homeContent.heroBackgroundUrl">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <h4>Upload Hero Background</h4>
+                    <p>Click to select an image (Recommended: 1920x1080px)</p>
+                  </div>
+                </div>
+                <button
+                  class="remove-btn"
+                  type="button"
+                  *ngIf="homeContent.heroBackgroundUrl"
+                  (click)="clearHeroImage()"
+                >
+                  <i class="fas fa-trash-alt"></i>
+                  Remove Image
+                </button>
+              </div>
+
+              <div class="form-grid">
+                <div class="form-field full">
+                  <label>
+                    <i class="fas fa-heading"></i>
+                    Hero Title
+                  </label>
+                  <input
+                    [(ngModel)]="homeContent.heroTitle"
+                    placeholder="Enter main headline (e.g., Welcome to Our Store)"
+                    class="input-lg"
+                  />
+                </div>
+
+                <div class="form-field full">
+                  <label>
+                    <i class="fas fa-align-left"></i>
+                    Hero Subtitle
+                  </label>
+                  <textarea
+                    [(ngModel)]="homeContent.heroSubtitle"
+                    rows="2"
+                    placeholder="Enter subtitle description"
+                    class="textarea-md"
+                  ></textarea>
+                </div>
+
+                <div class="form-field">
+                  <label>
+                    <i class="fas fa-mouse-pointer"></i>
+                    Primary Button Text
+                  </label>
+                  <input [(ngModel)]="homeContent.primaryButtonText" placeholder="Shop Now" />
+                </div>
+                <div class="form-field">
+                  <label>
+                    <i class="fas fa-link"></i>
+                    Primary Button Link
+                  </label>
+                  <input [(ngModel)]="homeContent.primaryButtonLink" placeholder="/products" />
+                </div>
+
+                <div class="form-field">
+                  <label>
+                    <i class="fas fa-mouse-pointer"></i>
+                    Secondary Button Text
+                  </label>
+                  <input [(ngModel)]="homeContent.secondaryButtonText" placeholder="Learn More" />
+                </div>
+                <div class="form-field">
+                  <label>
+                    <i class="fas fa-link"></i>
+                    Secondary Button Link
+                  </label>
+                  <input [(ngModel)]="homeContent.secondaryButtonLink" placeholder="/tailoring" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Features Section -->
+          <div class="edit-section features-section">
+            <div class="section-header">
+              <div class="section-icon">
+                <i class="fas fa-star"></i>
+              </div>
+              <div class="section-info">
+                <h3>Why Choose Us - Features</h3>
+                <p>Highlight the key benefits and features of your business</p>
+              </div>
+              <button class="add-feature-btn" type="button" (click)="addFeature()">
+                <i class="fas fa-plus-circle"></i>
+                Add Feature
+              </button>
+            </div>
+
+            <div class="section-body">
+              <div class="features-list" *ngIf="homeContent.features.length > 0">
+                <div
+                  class="feature-card"
+                  *ngFor="
+                    let feature of homeContent.features;
+                    let i = index;
+                    trackBy: trackByFeatureIndex
+                  "
+                >
+                  <div class="feature-card-header">
+                    <div class="feature-badge">
+                      <i class="fas fa-grip-vertical"></i>
+                      <span>#{{ i + 1 }}</span>
+                    </div>
+                    <button class="delete-feature-btn" type="button" (click)="removeFeature(i)">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                  <div class="feature-card-body">
+                    <div class="form-field icon-field">
+                      <label>
+                        <i class="fas fa-icons"></i>
+                        Icon (Font Awesome)
+                      </label>
+                      <div class="icon-input-wrapper">
+                        <input [(ngModel)]="feature.icon" placeholder="fas fa-star" />
+                        <span class="icon-preview"><i [class]="feature.icon"></i></span>
+                      </div>
+                      <small class="field-hint"
+                        >Search icons at
+                        <a href="https://fontawesome.com/icons" target="_blank"
+                          >fontawesome.com</a
+                        ></small
+                      >
+                    </div>
+                    <div class="form-field">
+                      <label>
+                        <i class="fas fa-text-width"></i>
+                        Title
+                      </label>
+                      <input [(ngModel)]="feature.title" placeholder="Feature title" />
+                    </div>
+                    <div class="form-field">
+                      <label>
+                        <i class="fas fa-align-left"></i>
+                        Description
+                      </label>
+                      <textarea
+                        [(ngModel)]="feature.description"
+                        rows="2"
+                        placeholder="Feature description"
+                      ></textarea>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="empty-features" *ngIf="homeContent.features.length === 0">
+                <i class="fas fa-star"></i>
+                <h4>No Features Added</h4>
+                <p>Click "Add Feature" button to create your first feature</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Advertisements Section -->
+          <div class="edit-section ads-section">
+            <div class="section-header">
+              <div class="section-icon">
+                <i class="fas fa-bullhorn"></i>
+              </div>
+              <div class="section-info">
+                <h3>Advertisement Banner</h3>
+                <p>Promotional banners displayed on your homepage</p>
+              </div>
+            </div>
+
+            <div class="section-body">
+              <!-- Add New Advertisement -->
+              <div class="add-ad-card">
+                <div class="add-ad-header">
+                  <i class="fas fa-plus-square"></i>
+                  <h4>Add New Advertisement</h4>
+                </div>
+                <div class="add-ad-body">
+                  <div class="form-field">
+                    <label>
+                      <i class="fas fa-image"></i>
+                      Advertisement Image
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      #adImageInput
+                      (change)="onAdImageSelected($event)"
+                      class="file-input"
+                    />
+                    <div class="image-preview-box" *ngIf="adImagePreview">
+                      <img [src]="adImagePreview" alt="Ad Preview" />
+                      <div class="preview-label">Preview</div>
+                    </div>
+                  </div>
+                  <div class="form-grid">
+                    <div class="form-field">
+                      <label>
+                        <i class="fas fa-link"></i>
+                        Link (Optional)
+                      </label>
+                      <input [(ngModel)]="newAd.link" placeholder="https://example.com" />
+                    </div>
+                    <div class="form-field">
+                      <label>
+                        <i class="fas fa-tag"></i>
+                        Alt Text (Optional)
+                      </label>
+                      <input [(ngModel)]="newAd.alt" placeholder="Advertisement description" />
+                    </div>
+                  </div>
+                  <button class="add-ad-btn" type="button" (click)="addAdvertisement()">
+                    <i class="fas fa-check-circle"></i>
+                    Add Advertisement
+                  </button>
+                </div>
+              </div>
+
+              <!-- Existing Advertisements -->
+              <div class="ads-list" *ngIf="homeContent.advertisements.length > 0">
+                <div class="ads-list-header">
+                  <h4>
+                    <i class="fas fa-list"></i>
+                    Current Advertisements ({{ homeContent.advertisements.length }})
+                  </h4>
+                </div>
+                <div class="ad-items">
+                  <div
+                    class="ad-card"
+                    *ngFor="
+                      let ad of homeContent.advertisements;
+                      let i = index;
+                      trackBy: trackByAdIndex
+                    "
+                  >
+                    <div class="ad-card-image">
+                      <img
+                        [src]="ad.imageUrl"
+                        [alt]="ad.alt || 'Advertisement'"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </div>
+                    <div class="ad-card-content">
+                      <div class="ad-info-row">
+                        <span class="ad-label">
+                          <i class="fas fa-link"></i>
+                          Link:
+                        </span>
+                        <span class="ad-value">{{ ad.link || 'No link' }}</span>
+                      </div>
+                      <div class="ad-info-row">
+                        <span class="ad-label">
+                          <i class="fas fa-tag"></i>
+                          Alt:
+                        </span>
+                        <span class="ad-value">{{ ad.alt || 'No alt text' }}</span>
+                      </div>
+                    </div>
+                    <button class="delete-ad-btn" type="button" (click)="removeAdvertisement(i)">
+                      <i class="fas fa-trash-alt"></i>
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Edit About Tab -->
+      <div *ngIf="activeTab === 'edit-about'" class="tab-content edit-home-tab">
+        <div class="edit-home-header">
+          <div class="header-content">
+            <div class="header-icon">
+              <i class="fas fa-info-circle"></i>
+            </div>
+            <div class="header-text">
+              <h2>Edit About Page</h2>
+              <p class="subtitle">Customize brand story, statistics and team</p>
+            </div>
+          </div>
+          <button class="save-btn" type="button" (click)="saveAboutContent()">
+            <i class="fas fa-save"></i>
+            <span>Save Changes</span>
+          </button>
+        </div>
+
+        <!-- Brand Story Section -->
+        <div class="edit-section hero-section">
+          <div class="section-header">
+            <div class="section-icon">
+              <i class="fas fa-image"></i>
+            </div>
+            <div class="section-info">
+              <h3>Brand Story</h3>
+              <p>Hero and brand images with your story</p>
+            </div>
+          </div>
+          <div class="section-body">
+            <div class="form-grid">
+              <div class="form-field full">
+                <label>
+                  <i class="fas fa-photo-video"></i>
+                  Hero Image
+                </label>
+                <input type="file" accept="image/*" (change)="onHeroImageSelected($event)" />
+                <div class="upload-preview" *ngIf="aboutContent.heroImage">
+                  <img [src]="aboutContent.heroImage" alt="Hero" loading="lazy" decoding="async" />
+                </div>
+              </div>
+              <div class="form-field full">
+                <label>
+                  <i class="fas fa-image"></i>
+                  Brand Image
+                </label>
+                <input type="file" accept="image/*" (change)="onBrandImageSelected($event)" />
+                <div class="upload-preview" *ngIf="aboutContent.brandImage">
+                  <img
+                    [src]="aboutContent.brandImage"
+                    alt="Brand"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
+              </div>
+              <div class="form-field full">
+                <label>
+                  <i class="fas fa-align-left"></i>
+                  Brand Story Description
+                </label>
+                <textarea
+                  [(ngModel)]="aboutContent.brandStory"
+                  rows="4"
+                  placeholder="Write your brand's story..."
+                  class="textarea-md"
+                ></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CEO Story Section -->
+        <div class="edit-section features-section">
+          <div class="section-header">
+            <div class="section-icon">
+              <i class="fas fa-user-tie"></i>
+            </div>
+            <div class="section-info">
+              <h3>CEO Story</h3>
+              <p>Image and story of your founder</p>
+            </div>
+          </div>
+          <div class="section-body">
+            <div class="form-field full">
+              <label>
+                <i class="fas fa-image"></i>
+                CEO Image
+              </label>
+              <input type="file" accept="image/*" (change)="onCeoImageSelected($event)" />
+              <div class="upload-preview" *ngIf="aboutContent.ceoImage">
+                <img [src]="aboutContent.ceoImage" [alt]="'CEO'" loading="lazy" decoding="async" />
+              </div>
+            </div>
+            <div class="form-field full">
+              <label>
+                <i class="fas fa-align-left"></i>
+                CEO's Story
+              </label>
+              <textarea
+                [(ngModel)]="aboutContent.ceoStory"
+                rows="4"
+                placeholder="Write your CEO's story and journey..."
+                class="textarea-md"
+              ></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Brand Statistics -->
+        <div class="edit-section features-section">
+          <div class="section-header">
+            <div class="section-icon">
+              <i class="fas fa-chart-bar"></i>
+            </div>
+            <div class="section-info">
+              <h3>Brand Statistics</h3>
+              <p>Key numbers with icon, value and label</p>
+            </div>
+            <button class="add-feature-btn" type="button" (click)="addStatistic()">
+              <i class="fas fa-plus-circle"></i>
+              Add Statistic
+            </button>
+          </div>
+          <div class="section-body">
+            <div class="features-list" *ngIf="aboutContent.stats.length > 0">
+              <div
+                class="feature-card"
+                *ngFor="let stat of aboutContent.stats; let i = index; trackBy: trackByStatIndex"
+              >
+                <div class="feature-card-header">
+                  <div class="feature-badge">
+                    <i class="fas fa-grip-vertical"></i>
+                    <span>#{{ i + 1 }}</span>
+                  </div>
+                  <button class="delete-feature-btn" type="button" (click)="removeStatistic(i)">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+                <div class="feature-card-body">
+                  <div class="form-field icon-field">
+                    <label>
+                      <i class="fas fa-icons"></i>
+                      Icon (Font Awesome)
+                    </label>
+                    <div class="icon-input-wrapper">
+                      <input [(ngModel)]="stat.icon" placeholder="fas fa-users" />
+                      <span class="icon-preview"><i [class]="stat.icon"></i></span>
+                    </div>
+                  </div>
+                  <div class="form-field">
+                    <label>
+                      <i class="fas fa-sort-numeric-up"></i>
+                      Value
+                    </label>
+                    <input [(ngModel)]="stat.value" placeholder="25+" />
+                  </div>
+                  <div class="form-field">
+                    <label>
+                      <i class="fas fa-tag"></i>
+                      Label
+                    </label>
+                    <input [(ngModel)]="stat.label" placeholder="Artisans" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="empty-features" *ngIf="aboutContent.stats.length === 0">
+              <i class="fas fa-chart-bar"></i>
+              <h4>No Statistics Added</h4>
+              <p>Click "Add Statistic" to add your first stat</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Team Members -->
+        <div class="edit-section features-section">
+          <div class="section-header">
+            <div class="section-icon">
+              <i class="fas fa-users"></i>
+            </div>
+            <div class="section-info">
+              <h3>Team Members</h3>
+              <p>Manage names, positions, images and bios</p>
+            </div>
+            <button class="add-feature-btn" type="button" (click)="addTeamMember()">
+              <i class="fas fa-plus-circle"></i>
+              Add Member
+            </button>
+          </div>
+          <div class="section-body">
+            <div class="features-list" *ngIf="aboutContent.teamMembers.length > 0">
+              <div
+                class="feature-card"
+                *ngFor="
+                  let member of aboutContent.teamMembers;
+                  let i = index;
+                  trackBy: trackByTeamIndex
+                "
+              >
+                <div class="feature-card-header">
+                  <div class="feature-badge">
+                    <i class="fas fa-grip-vertical"></i>
+                    <span>#{{ i + 1 }}</span>
+                  </div>
+                  <button class="delete-feature-btn" type="button" (click)="removeTeamMember(i)">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+                <div class="feature-card-body">
+                  <div class="form-grid">
+                    <div class="form-field">
+                      <label>
+                        <i class="fas fa-user"></i>
+                        Name
+                      </label>
+                      <input [(ngModel)]="member.name" placeholder="Team member name" />
+                    </div>
+                    <div class="form-field">
+                      <label>
+                        <i class="fas fa-briefcase"></i>
+                        Position
+                      </label>
+                      <input [(ngModel)]="member.position" placeholder="Job title" />
+                    </div>
+                    <div class="form-field full">
+                      <label>
+                        <i class="fas fa-image"></i>
+                        Image
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        (change)="onTeamImageSelected(i, $event)"
+                      />
+                      <div class="upload-preview" *ngIf="member.image">
+                        <img
+                          [src]="member.image"
+                          [alt]="member.name"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      </div>
+                    </div>
+                    <div class="form-field full">
+                      <label>
+                        <i class="fas fa-align-left"></i>
+                        Bio
+                      </label>
+                      <textarea
+                        [(ngModel)]="member.bio"
+                        rows="2"
+                        placeholder="Short biography..."
+                        class="textarea-md"
+                      ></textarea>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="empty-features" *ngIf="aboutContent.teamMembers.length === 0">
+              <i class="fas fa-users"></i>
+              <h4>No Team Members Added</h4>
+              <p>Click "Add Member" to add your first team member</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Users Management Tab -->
+      <div *ngIf="activeTab === 'users'" class="tab-content">
+        <div class="content-header">
+          <h2>User Management</h2>
+          <p class="subtitle">View, ban, and manage user roles</p>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="search-bar">
+          <i class="fas fa-search"></i>
+          <input
+            type="text"
+            placeholder="Search by name or email..."
+            (input)="searchUsers($event)"
+          />
+        </div>
+
+        <!-- Users Carousel Grid -->
+        <div class="users-carousel-container">
+          <div *ngIf="filteredUsers.length > 0" class="users-carousel-grid">
+            <div *ngFor="let user of filteredUsers" class="user-card" [class.banned]="user.banned">
+              <!-- User Photo -->
+              <div class="user-card-photo">
+                <div class="user-photo" *ngIf="user.profileImage">
+                  <img [src]="'http://localhost:3000' + user.profileImage" [alt]="user.name" />
+                </div>
+                <div class="user-photo no-photo" *ngIf="!user.profileImage">
+                  <i class="fas fa-user"></i>
+                </div>
+              </div>
+
+              <!-- User Info -->
+              <div class="user-card-info">
+                <h3 class="user-card-name">{{ user.name }}</h3>
+                <p class="user-card-email">{{ user.email }}</p>
+                <p class="user-card-phone">{{ user.phone || '—' }}</p>
+                <p class="user-card-location">
+                  <i class="fas fa-map-marker-alt"></i>
+                  {{ user.country || user.address || '—' }}
+                </p>
+              </div>
+
+              <!-- User Status -->
+              <div class="user-card-status">
+                <span [class]="'status-badge status-' + (user.banned ? 'banned' : 'active')">
+                  {{ user.banned ? 'Banned' : 'Active' }}
+                </span>
+                <span
+                  [class]="
+                    'account-badge account-' + (user.accountCompleted ? 'complete' : 'pending')
+                  "
+                >
+                  {{ user.accountCompleted ? 'Complete' : 'Pending' }}
+                </span>
+              </div>
+
+              <!-- User Actions -->
+              <div class="user-card-actions">
+                <button
+                  *ngIf="!user.banned"
+                  class="btn-action btn-ban"
+                  (click)="banUser(user._id)"
+                  title="Ban user"
+                >
+                  <i class="fas fa-ban"></i>
+                </button>
+                <button
+                  *ngIf="user.banned"
+                  class="btn-action btn-unban"
+                  (click)="unbanUser(user._id)"
+                  title="Unban user"
+                >
+                  <i class="fas fa-check-circle"></i>
+                </button>
+                <button
+                  *ngIf="user.role !== 'admin'"
+                  class="btn-action btn-promote"
+                  (click)="promoteToAdmin(user._id)"
+                  title="Promote to admin"
+                >
+                  <i class="fas fa-crown"></i>
+                </button>
+                <button
+                  *ngIf="user.role === 'admin'"
+                  class="btn-action btn-demote"
+                  (click)="demoteFromAdmin(user._id)"
+                  title="Demote from admin"
+                >
+                  <i class="fas fa-user"></i>
+                </button>
+                <button
+                  class="btn-action btn-delete"
+                  (click)="deleteUser(user._id, user.name)"
+                  title="Delete account"
+                >
+                  <i class="fas fa-trash-alt"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="filteredUsers.length === 0" class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <h3>No users found</h3>
+            <p>{{ searchQuery ? 'Try different search terms' : 'No users registered yet' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Admins Management Tab -->
+      <div *ngIf="activeTab === 'admins'" class="tab-content">
+        <div class="content-header">
+          <h2>Admin Management</h2>
+          <p class="subtitle">View and manage admin accounts</p>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="search-bar">
+          <i class="fas fa-search"></i>
+          <input
+            type="text"
+            placeholder="Search by name or email..."
+            (input)="searchAdmins($event)"
+          />
+        </div>
+
+        <!-- Admins Stat -->
+        <div class="admins-stats">
+          <div class="stat-box">
+            <i class="fas fa-user-shield"></i>
+            <div class="stat-details">
+              <h3>{{ admins.length }}</h3>
+              <p>Total Administrators</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Admins Carousel Grid -->
+        <div class="admins-carousel-container">
+          <div *ngIf="filteredAdmins.length > 0" class="admins-carousel-grid">
+            <div *ngFor="let admin of filteredAdmins" class="admin-card">
+              <!-- Admin Photo -->
+              <div class="admin-card-photo">
+                <div class="user-photo" *ngIf="admin.profileImage">
+                  <img [src]="'http://localhost:3000' + admin.profileImage" [alt]="admin.name" />
+                </div>
+                <div class="user-photo no-photo" *ngIf="!admin.profileImage">
+                  <i class="fas fa-user-shield"></i>
+                </div>
+              </div>
+
+              <!-- Admin Info -->
+              <div class="admin-card-info">
+                <h3 class="admin-card-name">{{ admin.name }}</h3>
+                <span class="admin-card-badge"><i class="fas fa-crown"></i> Admin</span>
+                <p class="admin-card-email">{{ admin.email }}</p>
+                <p class="admin-card-phone">{{ admin.phone || '—' }}</p>
+                <p class="admin-card-date">
+                  <i class="fas fa-calendar-alt"></i>
+                  {{ admin.createdAt | date : 'MMM d, y' }}
+                </p>
+              </div>
+
+              <!-- Admin Actions -->
+              <div class="admin-card-actions">
+                <button
+                  class="btn-action btn-demote"
+                  (click)="demoteAdminToUser(admin._id)"
+                  title="Convert to regular user"
+                >
+                  <i class="fas fa-user"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="filteredAdmins.length === 0" class="empty-state">
+            <i class="fas fa-user-shield"></i>
+            <h3>No admins found</h3>
+            <p>{{ adminSearchQuery ? 'Try different search terms' : 'No admin accounts found' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Edit Products Tab -->
+      <div *ngIf="activeTab === 'edit-products'" class="tab-content">
+        <div class="content-header">
+          <h2>Manage Products</h2>
+          <p class="subtitle">Add, edit, or remove products from your store</p>
+        </div>
+
+        <!-- Product Form -->
+        <div class="form-section">
+          <h3>{{ editingProductId ? 'Edit Product' : 'Add New Product' }}</h3>
+          <form class="product-form">
+            <!-- Product Image Upload -->
+            <div class="form-group">
+              <label>Product Image</label>
+              <div class="image-upload" (click)="fileInput.click()">
+                <div class="image-preview" *ngIf="productImagePreview">
+                  <img [src]="productImagePreview" [alt]="newProduct.name" />
+                </div>
+                <div class="upload-area" *ngIf="!productImagePreview">
+                  <i class="fas fa-image"></i>
+                  <p>Click to upload product image</p>
+                </div>
+              </div>
+              <input
+                #fileInput
+                type="file"
+                accept="image/*"
+                (change)="onMainProductImageSelected($event)"
+                style="display: none"
+              />
+            </div>
+
+            <!-- Product Name -->
+            <div class="form-group">
+              <label for="product-name">Product Name *</label>
+              <input
+                id="product-name"
+                type="text"
+                [(ngModel)]="newProduct.name"
+                name="name"
+                placeholder="e.g., Premium Cotton T-Shirt"
+                class="form-input"
+              />
+            </div>
+
+            <!-- Product Description -->
+            <div class="form-group">
+              <label for="product-desc">Product Description *</label>
+              <textarea
+                id="product-desc"
+                [(ngModel)]="newProduct.description"
+                name="description"
+                placeholder="Describe your product..."
+                class="form-textarea"
+                rows="4"
+              ></textarea>
+            </div>
+
+            <!-- Price and Stock -->
+            <div class="form-row">
+              <div class="form-group">
+                <label for="product-price">Price (USD) *</label>
+                <input
+                  id="product-price"
+                  type="number"
+                  [(ngModel)]="newProduct.price"
+                  name="price"
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                  class="form-input"
+                />
+              </div>
+              <div class="form-group">
+                <label for="product-stock">Stock Quantity *</label>
+                <input
+                  id="product-stock"
+                  type="number"
+                  [(ngModel)]="newProduct.stock"
+                  name="stock"
+                  min="0"
+                  placeholder="0"
+                  class="form-input"
+                />
+              </div>
+            </div>
+
+            <!-- Category with Add New Option -->
+            <div class="form-group">
+              <label for="product-category">Category</label>
+              <div class="category-input-group">
+                <select
+                  id="product-category"
+                  [(ngModel)]="newProduct.category"
+                  name="category"
+                  class="form-input"
+                >
+                  <option value="">Select Category</option>
+                  <option value="Apparel">Apparel</option>
+                  <option value="Accessories">Accessories</option>
+                  <option value="Home">Home</option>
+                  <option value="Other">Other</option>
+                  <option value="__new__">+ Add New Category</option>
+                </select>
+                <input
+                  *ngIf="newProduct.category === '__new__'"
+                  type="text"
+                  [(ngModel)]="newCategoryName"
+                  name="newCategory"
+                  placeholder="Enter new category name"
+                  class="form-input new-category-input"
+                  (blur)="confirmNewCategory()"
+                />
+              </div>
+            </div>
+
+            <!-- Gender Type -->
+            <div class="form-group">
+              <label for="product-gender">Gender Type</label>
+              <select
+                id="product-gender"
+                [(ngModel)]="newProduct.gender"
+                name="gender"
+                class="form-input"
+              >
+                <option value="unisex">Unisex</option>
+                <option value="men">Men</option>
+                <option value="women">Women</option>
+              </select>
+            </div>
+
+            <!-- Colors Management -->
+            <div class="form-group">
+              <label>Available Colors</label>
+              <div class="color-size-manager">
+                <div class="color-input-group">
+                  <div class="form-row">
+                    <input
+                      type="text"
+                      [(ngModel)]="newColor.name"
+                      name="colorName"
+                      placeholder="Color name (e.g., Red, Blue)"
+                      class="form-input"
+                    />
+                    <div class="color-picker">
+                      <input
+                        type="color"
+                        [(ngModel)]="newColor.code"
+                        name="colorCode"
+                        class="color-input-field"
+                      />
+                      <span class="color-preview" [style.backgroundColor]="newColor.code"></span>
+                    </div>
+                  </div>
+                  <button type="button" (click)="addColor()" class="btn-add">
+                    <i class="fas fa-plus"></i> Add Color
+                  </button>
+                </div>
+
+                <div class="colors-list" *ngIf="newProduct.colors.length > 0">
+                  <div class="color-tag" *ngFor="let color of newProduct.colors; let i = index">
+                    <div class="color-display">
+                      <span class="color-swatch" [style.backgroundColor]="color.code"></span>
+                      <span class="color-name">{{ color.name }}</span>
+                    </div>
+                    <button type="button" (click)="removeColor(i)" class="btn-remove">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sizes Management -->
+            <div class="form-group">
+              <label>Available Sizes</label>
+              <div class="color-size-manager">
+                <div class="size-input-group">
+                  <input
+                    type="text"
+                    [(ngModel)]="newSize"
+                    name="size"
+                    placeholder="Size (e.g., S, M, L, XL, 32, 33)"
+                    class="form-input"
+                  />
+                  <button type="button" (click)="addSize()" class="btn-add">
+                    <i class="fas fa-plus"></i> Add Size
+                  </button>
+                </div>
+
+                <div class="sizes-list" *ngIf="newProduct.sizes.length > 0">
+                  <div class="size-tag" *ngFor="let size of newProduct.sizes; let i = index">
+                    <span class="size-name">{{ size }}</span>
+                    <button type="button" (click)="removeSize(i)" class="btn-remove">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Product Images Management -->
+            <div class="form-group">
+              <label>Product Images (Multiple)</label>
+              <div class="images-manager">
+                <div class="image-input-section">
+                  <div class="image-upload">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      (change)="onProductImageSelected($event)"
+                      class="file-input"
+                      id="product-image-input"
+                    />
+                    <label for="product-image-input" class="file-label">
+                      <i class="fas fa-cloud-upload-alt"></i>
+                      <span>Click or drag to upload image</span>
+                    </label>
+                  </div>
+
+                  <div class="image-preview-section" *ngIf="newProductImagePreview">
+                    <div class="preview-container">
+                      <img [src]="newProductImagePreview" alt="Preview" class="image-preview" />
+                      <button type="button" (click)="addProductImage()" class="btn-add">
+                        <i class="fas fa-plus"></i> Add to Product
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="images-gallery" *ngIf="newProduct.images.length > 0">
+                  <h4>Product Images ({{ newProduct.images.length }})</h4>
+                  <div class="gallery-grid">
+                    <div class="gallery-item" *ngFor="let img of newProduct.images; let i = index">
+                      <img [src]="img" [alt]="'Product image ' + (i + 1)" />
+                      <div class="gallery-actions">
+                        <span class="image-position">{{ i + 1 }}</span>
+                        <button type="button" (click)="removeProductImage(i)" class="btn-remove">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Discount and Sale -->
+            <div class="form-row">
+              <div class="form-group">
+                <label for="product-discount">Discount (%)</label>
+                <input
+                  id="product-discount"
+                  type="number"
+                  [(ngModel)]="newProduct.discount"
+                  name="discount"
+                  min="0"
+                  max="100"
+                  placeholder="0"
+                  class="form-input"
+                />
+              </div>
+              <div class="form-group checkbox">
+                <label>
+                  <input type="checkbox" [(ngModel)]="newProduct.isOnSale" name="isOnSale" />
+                  <span>Mark as On Sale</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+              <button
+                type="button"
+                (click)="addOrUpdateProduct()"
+                class="btn-primary"
+                [disabled]="productFormLoading"
+              >
+                <i
+                  class="fas"
+                  [ngClass]="productFormLoading ? 'fa-spinner fa-spin' : 'fa-save'"
+                ></i>
+                {{
+                  productFormLoading
+                    ? 'Processing...'
+                    : editingProductId
+                    ? 'Update Product'
+                    : 'Add Product'
+                }}
+              </button>
+              <button
+                type="button"
+                (click)="resetProductForm()"
+                class="btn-secondary"
+                [disabled]="productFormLoading"
+              >
+                <i class="fas fa-times"></i>
+                Clear Form
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Products List -->
+        <div class="products-list-section">
+          <h3>Current Products ({{ products.length }})</h3>
+
+          <div *ngIf="productsLoading" class="loading-state">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Loading products...</p>
+          </div>
+
+          <div *ngIf="!productsLoading && products.length === 0" class="empty-state">
+            <i class="fas fa-box-open"></i>
+            <h3>No products yet</h3>
+            <p>Add your first product using the form above.</p>
+          </div>
+
+          <div *ngIf="!productsLoading && products.length > 0" class="products-table-wrapper">
+            <table class="products-table">
+              <thead>
+                <tr>
+                  <th>Image</th>
+                  <th>Name</th>
+                  <th>Price</th>
+                  <th>Stock</th>
+                  <th>Discount</th>
+                  <th>On Sale</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let product of products" class="product-row">
+                  <td>
+                    <img [src]="product.image" [alt]="product.name" class="product-thumb" />
+                  </td>
+                  <td>
+                    <div class="product-info">
+                      <strong>{{ product.name }}</strong>
+                      <small>{{ product.category }}</small>
+                    </div>
+                  </td>
+                  <td>${{ product.price.toFixed(2) }}</td>
+                  <td>
+                    <span [class.low-stock]="product.stock < 10">
+                      {{ product.stock }}
+                    </span>
+                  </td>
+                  <td>{{ product.discount || 0 }}%</td>
+                  <td>
+                    <span class="badge" [class.sale]="product.isOnSale">
+                      {{ product.isOnSale ? 'Yes' : 'No' }}
+                    </span>
+                  </td>
+                  <td class="actions-cell">
+                    <div class="action-buttons">
+                      <button
+                        class="btn-action btn-edit"
+                        (click)="editProduct(product)"
+                        title="Edit product"
+                        [disabled]="productsLoading || productFormLoading"
+                      >
+                        <i class="fas fa-edit"></i>
+                        <span>Edit</span>
+                      </button>
+                      <button
+                        class="btn-action btn-delete"
+                        (click)="deleteProduct(product._id)"
+                        title="Delete product"
+                        [disabled]="productsLoading || productFormLoading"
+                      >
+                        <i class="fas fa-trash"></i>
+                        <span>Delete</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <!-- Navbar Brand Editor Modal -->
+  <div class="modal-overlay" *ngIf="navbarBrandModalOpen" (click)="closeNavbarBrandModal()">
+    <div class="modal-content brand-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>
+          <i class="fas fa-signature"></i>
+          Edit Navbar Name & Logo
+        </h2>
+        <button class="close-modal-btn" (click)="closeNavbarBrandModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-field">
+            <label>Brand Name</label>
+            <input
+              type="text"
+              [(ngModel)]="navbarBrandName"
+              (input)="onNavbarBrandNameInput($event)"
+              placeholder="Enter brand name"
+            />
+          </div>
+          <div class="form-field">
+            <label>Brand Tagline (optional)</label>
+            <input
+              type="text"
+              [(ngModel)]="navbarBrandTagline"
+              (input)="onNavbarBrandTaglineInput($event)"
+              placeholder="Short tagline"
+            />
+          </div>
+          <div class="form-field">
+            <label>Brand Logo</label>
+            <div class="file-input-row">
+              <input type="file" accept="image/*" (change)="onNavbarBrandLogoSelected($event)" />
+              <div class="logo-preview" *ngIf="navbarBrandLogoPreview">
+                <img [src]="navbarBrandLogoPreview" alt="Logo Preview" />
+              </div>
+            </div>
+            <small class="hint"
+              >Name & tagline auto-save. Click "Save Changes" to upload logo.</small
+            >
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button
+          class="action-btn-large approve"
+          (click)="saveNavbarBrandSettings()"
+          [disabled]="isSavingBrand"
+        >
+          <i class="fas" [ngClass]="isSavingBrand ? 'fa-spinner fa-spin' : 'fa-check-circle'"></i>
+          {{ isSavingBrand ? 'Saving...' : 'Save Changes' }}
+        </button>
+        <button
+          class="action-btn-large reject"
+          (click)="closeNavbarBrandModal()"
+          [disabled]="isSavingBrand"
+        >
+          <i class="fas fa-times-circle"></i>
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Success/Error Modal -->
+<div class="modal-overlay" *ngIf="showSaveSuccessModal" (click)="closeSuccessModal()">
+  <div
+    class="success-modal"
+    [class.error-modal]="!saveModalSuccess"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="modal-icon">
+      <i [class]="saveModalSuccess ? 'fas fa-check-circle' : 'fas fa-times-circle'"></i>
+    </div>
+    <h2>{{ successModalMessage }}</h2>
+    <p *ngIf="saveModalSuccess">
+      Your changes have been saved and will appear on the products page.
+    </p>
+    <p *ngIf="!saveModalSuccess">Please check your connection and try again.</p>
+    <button class="modal-close-btn" (click)="closeSuccessModal()">
+      <i class="fas fa-times"></i>
+      Close
+    </button>
+  </div>
+</div>
+
+<!-- Delivery Fee Modal -->
+<app-delivery-fee-modal
+  [isOpen]="deliveryFeeModalOpen"
+  (close)="closeDeliveryFeeModal()"
+  (featureUpdated)="onDeliveryFeeUpdated()"
+>
+</app-delivery-fee-modal>
