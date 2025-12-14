@@ -1,0 +1,169 @@
+<div class="auth-page">
+  <!-- Login Content -->
+  <div class="auth-content">
+    <div class="auth-container">
+      <div class="form-section">
+        <div class="form-header">
+          <h1>Admin Portal</h1>
+          <p class="subtitle">دخول الإدارة</p>
+        </div>
+
+        <div *ngIf="error" class="alert alert-error">
+          <i class="fas fa-exclamation-circle"></i>
+          {{ error }}
+        </div>
+
+        <form (ngSubmit)="login()" class="auth-form">
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-envelope"></i>
+              Email Address
+            </label>
+            <input
+              type="email"
+              [(ngModel)]="email"
+              name="email"
+              class="form-input"
+              placeholder="admin@example.com"
+              required
+              [disabled]="loading"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-lock"></i>
+              Password
+            </label>
+            <input
+              type="password"
+              [(ngModel)]="password"
+              name="password"
+              class="form-input"
+              placeholder="••••••••"
+              required
+              [disabled]="loading"
+            />
+          </div>
+
+          <button type="submit" class="btn btn-primary" [disabled]="loading">
+            <i class="fas fa-sign-in-alt"></i>
+            {{ loading ? 'Signing in...' : 'Sign In' }}
+          </button>
+        </form>
+
+        <div class="form-footer">
+          <p class="support-text">
+            <i class="fas fa-shield-alt"></i>
+            Admin access only. Contact support for access.
+          </p>
+        </div>
+      </div>
+
+      <!-- Illustration Side -->
+      <div class="illustration-section">
+        <div class="illustration-content">
+          <div class="icon-large">
+            <i class="fas fa-crown"></i>
+          </div>
+          <h2>Admin Dashboard</h2>
+          <p>Manage your platform with powerful tools.</p>
+          <div class="features-list">
+            <div class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              <span>Full Control</span>
+            </div>
+            <div class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              <span>User Management</span>
+            </div>
+            <div class="feature-item">
+              <i class="fas fa-check-circle"></i>
+              <span>Content Editor</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Master Code Modal -->
+  <div *ngIf="showMasterCodeModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>
+          <i class="fas fa-lock"></i>
+          Security Verification
+        </h2>
+        <p class="modal-subtitle">تحقق من الأمان</p>
+      </div>
+
+      <!-- Error Message -->
+      <div *ngIf="masterCodeError" class="alert alert-error-modal">
+        <i class="fas fa-exclamation-circle"></i>
+        {{ masterCodeError }}
+      </div>
+
+      <!-- Master Code Input -->
+      <div class="code-input-section">
+        <label>Enter 6-Digit Master Code</label>
+        <input
+          type="text"
+          [(ngModel)]="masterCode"
+          maxlength="6"
+          inputmode="numeric"
+          placeholder="000000"
+          class="code-input"
+          [disabled]="masterCodeLoading"
+        />
+        <small>Valid for 10 minutes</small>
+      </div>
+
+      <!-- Buttons -->
+      <div class="modal-actions">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="closeMasterCodeModal()"
+          [disabled]="masterCodeLoading"
+        >
+          <i class="fas fa-arrow-left"></i>
+          Back
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="verifyMasterCode()"
+          [disabled]="masterCodeLoading || masterCode.length !== 6"
+        >
+          <i *ngIf="!masterCodeLoading" class="fas fa-check"></i>
+          <i *ngIf="masterCodeLoading" class="fas fa-spinner fa-spin"></i>
+          {{ masterCodeLoading ? 'Verifying...' : 'Verify' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Account Banned Modal -->
+  <div *ngIf="showAccountBannedModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header banned">
+        <h2>
+          <i class="fas fa-ban"></i>
+          Account Suspended
+        </h2>
+        <p class="modal-subtitle">حسابك معلق</p>
+      </div>
+      <div class="banned-message">
+        <p>Sorry, your account has been suspended.</p>
+        <p>Please contact support for more information.</p>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" (click)="closeAccountBannedModal()">
+          <i class="fas fa-arrow-left"></i>
+          Back
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

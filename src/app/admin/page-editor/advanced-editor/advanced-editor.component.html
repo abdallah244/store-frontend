@@ -1,0 +1,374 @@
+<div class="editor-workspace">
+  <!-- Sidebar: File Explorer -->
+  <aside class="sidebar-left">
+    <div class="sidebar-header">
+      <h3>
+        <i class="fas fa-file-alt"></i>
+        PAGES
+      </h3>
+      <button class="btn-icon" (click)="addNewSection()" title="Add new section">
+        <i class="fas fa-plus"></i>
+      </button>
+    </div>
+
+    <div class="sections-tree">
+      <div
+        *ngFor="let section of sections; let i = index"
+        class="section-item"
+        [class.active]="selectedSectionId === section.id"
+        (click)="selectSection(section.id)"
+      >
+        <div
+          class="section-header-item"
+          (click)="toggleSection(section.id); $event.stopPropagation()"
+        >
+          <i
+            class="fas"
+            [ngClass]="'fa-chevron-right'"
+            [style.transform]="expandedSectionId === section.id ? 'rotate(90deg)' : ''"
+          ></i>
+          <i class="fas" [ngClass]="getSectionIcon(section.type)"></i>
+          <span class="section-name">{{ section.name }}</span>
+          <span class="section-number">{{ i + 1 }}</span>
+        </div>
+
+        <!-- Section Actions -->
+        <div class="section-actions" *ngIf="selectedSectionId === section.id">
+          <button
+            class="btn-action"
+            (click)="duplicateSection(section.id); $event.stopPropagation()"
+            title="Duplicate"
+          >
+            <i class="fas fa-copy"></i>
+          </button>
+          <button
+            class="btn-action danger"
+            (click)="deleteSection(section.id); $event.stopPropagation()"
+            title="Delete"
+          >
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Editor -->
+  <div class="editor-main">
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="toolbar-group">
+        <button class="btn-toolbar" (click)="undo()" title="Undo (Ctrl+Z)">
+          <i class="fas fa-undo"></i>
+        </button>
+        <button class="btn-toolbar" (click)="redo()" title="Redo (Ctrl+Y)">
+          <i class="fas fa-redo"></i>
+        </button>
+        <div class="separator"></div>
+      </div>
+
+      <div class="toolbar-group">
+        <button
+          class="btn-toolbar"
+          [class.active]="activePanel === 'editor'"
+          (click)="activePanel = 'editor'"
+          title="Editor View"
+        >
+          <i class="fas fa-edit"></i>
+        </button>
+        <button
+          class="btn-toolbar"
+          [class.active]="activePanel === 'preview'"
+          (click)="activePanel = 'preview'"
+          title="Preview View"
+        >
+          <i class="fas fa-eye"></i>
+        </button>
+        <button
+          class="btn-toolbar"
+          [class.active]="activePanel === 'properties'"
+          (click)="activePanel = 'properties'"
+          title="Properties View"
+        >
+          <i class="fas fa-sliders-h"></i>
+        </button>
+      </div>
+
+      <div class="toolbar-group">
+        <button class="btn-save" (click)="savePageContent()">
+          <i class="fas fa-check"></i>
+          Save Changes
+        </button>
+      </div>
+    </div>
+
+    <!-- Content Area -->
+    <div class="content-area">
+      <!-- Editor Panel -->
+      <div class="panel editor-panel" [class.active]="activePanel === 'editor'">
+        <div *ngIf="!selectedSectionId" class="empty-state">
+          <i class="fas fa-plus-circle"></i>
+          <p>Select a section or create a new one to get started</p>
+        </div>
+
+        <div *ngIf="selectedSectionId && selectedProperties" class="editor-content">
+          <div class="editor-section">
+            <!-- Hero Section Editor -->
+            <ng-container *ngIf="selectedProperties.title">
+              <!-- Title -->
+              <div class="form-group">
+                <label>Title</label>
+                <textarea
+                  [value]="selectedProperties.title"
+                  (change)="updateProperty('title', $any($event.target).value)"
+                  rows="2"
+                  class="input-text"
+                  placeholder="Enter title"
+                ></textarea>
+              </div>
+
+              <!-- Subtitle -->
+              <div class="form-group">
+                <label>Subtitle</label>
+                <textarea
+                  [value]="selectedProperties.subtitle"
+                  (change)="updateProperty('subtitle', $any($event.target).value)"
+                  rows="2"
+                  class="input-text"
+                  placeholder="Enter subtitle"
+                ></textarea>
+              </div>
+
+              <!-- Colors -->
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Background Color</label>
+                  <div class="color-input">
+                    <input
+                      type="color"
+                      [value]="selectedProperties.backgroundColor"
+                      (change)="updateProperty('backgroundColor', $any($event.target).value)"
+                    />
+                    <span>{{ selectedProperties.backgroundColor }}</span>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>Text Color</label>
+                  <div class="color-input">
+                    <input
+                      type="color"
+                      [value]="selectedProperties.textColor"
+                      (change)="updateProperty('textColor', $any($event.target).value)"
+                    />
+                    <span>{{ selectedProperties.textColor }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Background Image Upload -->
+              <div class="form-group">
+                <label>Background Image</label>
+                <div
+                  class="upload-zone"
+                  [class.drag-over]="dragOverSection === selectedSectionId"
+                  (dragover)="onDragOver($event, selectedSectionId)"
+                  (dragleave)="onDragLeave($event)"
+                  (drop)="onDrop($event, selectedSectionId)"
+                >
+                  <input
+                    type="file"
+                    accept="image/*"
+                    (change)="onFileSelected($event, selectedSectionId)"
+                    #fileInput
+                    style="display: none"
+                  />
+                  <button
+                    type="button"
+                    (click)="fileInput.click()"
+                    class="upload-btn"
+                    [disabled]="uploadingSection === selectedSectionId"
+                  >
+                    <i
+                      class="fas"
+                      [ngClass]="
+                        uploadingSection === selectedSectionId
+                          ? 'fa-spinner fa-spin'
+                          : 'fa-cloud-upload-alt'
+                      "
+                    ></i>
+                    {{
+                      uploadingSection === selectedSectionId
+                        ? 'Uploading...'
+                        : 'Click or Drag Image'
+                    }}
+                  </button>
+                  <p class="upload-hint">Drag and drop your image here or click to select</p>
+                </div>
+                <div *ngIf="selectedProperties.backgroundImage" class="image-preview">
+                  <img [src]="selectedProperties.backgroundImage" alt="Background" />
+                </div>
+              </div>
+
+              <!-- Buttons -->
+              <div class="form-row" *ngIf="selectedProperties.primaryButton">
+                <div class="form-group">
+                  <label>Primary Button Text</label>
+                  <input
+                    type="text"
+                    [value]="selectedProperties.primaryButton.text"
+                    (change)="
+                      updateNestedProperty('primaryButton', 'text', $any($event.target).value)
+                    "
+                    class="input-text"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>Primary Button Color</label>
+                  <div class="color-input">
+                    <input
+                      type="color"
+                      [value]="selectedProperties.primaryButton.color"
+                      (change)="
+                        updateNestedProperty('primaryButton', 'color', $any($event.target).value)
+                      "
+                    />
+                    <span>{{ selectedProperties.primaryButton.color }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-row" *ngIf="selectedProperties.secondaryButton">
+                <div class="form-group">
+                  <label>Secondary Button Text</label>
+                  <input
+                    type="text"
+                    [value]="selectedProperties.secondaryButton.text"
+                    (change)="
+                      updateNestedProperty('secondaryButton', 'text', $any($event.target).value)
+                    "
+                    class="input-text"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>Secondary Button Color</label>
+                  <div class="color-input">
+                    <input
+                      type="color"
+                      [value]="selectedProperties.secondaryButton.color || 'transparent'"
+                      (change)="
+                        updateNestedProperty('secondaryButton', 'color', $any($event.target).value)
+                      "
+                    />
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview Panel -->
+      <div class="panel preview-panel" [class.active]="activePanel === 'preview'">
+        <div class="preview-header">
+          <h3>Live Preview</h3>
+          <span class="preview-hint">Changes update in real-time</span>
+        </div>
+        <div class="preview-content" [innerHTML]="previewHtml"></div>
+      </div>
+
+      <!-- Properties Panel -->
+      <div class="panel properties-panel" [class.active]="activePanel === 'properties'">
+        <div class="properties-header">
+          <h3>Properties</h3>
+          <p *ngIf="selectedSectionId" class="property-hint">{{ selectedSectionId }}</p>
+        </div>
+
+        <div *ngIf="!selectedSectionId" class="empty-properties">
+          <i class="fas fa-info-circle"></i>
+          <p>Select a section to edit properties</p>
+        </div>
+
+        <div *ngIf="selectedSectionId && selectedProperties" class="properties-list">
+          <div class="property-group">
+            <h4>Content</h4>
+            <div class="property-item">
+              <label>Name</label>
+              <input
+                type="text"
+                [value]="selectedProperties.name || 'Section'"
+                class="input-text"
+                placeholder="Section name"
+              />
+            </div>
+          </div>
+
+          <div class="property-group">
+            <h4>Design</h4>
+            <div class="property-item">
+              <label>Background</label>
+              <div class="color-input compact">
+                <input
+                  type="color"
+                  [value]="selectedProperties.backgroundColor"
+                  (change)="updateProperty('backgroundColor', $any($event.target).value)"
+                />
+              </div>
+            </div>
+            <div class="property-item">
+              <label>Text Color</label>
+              <div class="color-input compact">
+                <input
+                  type="color"
+                  [value]="selectedProperties.textColor"
+                  (change)="updateProperty('textColor', $any($event.target).value)"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="property-group">
+            <h4>Visibility</h4>
+            <div class="property-item">
+              <label class="checkbox">
+                <input type="checkbox" checked />
+                <span>Visible</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Sidebar: Inspector -->
+  <aside class="sidebar-right">
+    <div class="inspector-header">
+      <h3>
+        <i class="fas fa-info-circle"></i>
+        INSPECTOR
+      </h3>
+    </div>
+
+    <div class="inspector-content">
+      <div *ngIf="selectedSectionId" class="inspector-section">
+        <h4>Selected Section</h4>
+        <p class="inspector-text">{{ selectedSectionId }}</p>
+      </div>
+
+      <div class="inspector-section">
+        <h4>Sections</h4>
+        <p class="inspector-text">{{ sections.length }} sections</p>
+      </div>
+
+      <div class="inspector-section">
+        <h4>Quick Help</h4>
+        <ul class="quick-help">
+          <li><kbd>Ctrl</kbd> + <kbd>Z</kbd> - Undo</li>
+          <li><kbd>Ctrl</kbd> + <kbd>Y</kbd> - Redo</li>
+          <li><kbd>Ctrl</kbd> + <kbd>S</kbd> - Save</li>
+        </ul>
+      </div>
+    </div>
+  </aside>
+</div>

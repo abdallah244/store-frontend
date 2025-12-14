@@ -1,0 +1,271 @@
+<div class="profile-page" *ngIf="!loading; else loadingState">
+  <div class="page-header">
+    <div class="header-left">
+      <div class="avatar" [class.empty]="!user?.profileImage">
+        <img
+          *ngIf="user?.profileImage"
+          [src]="'http://localhost:3000' + user.profileImage"
+          [alt]="user?.name"
+        />
+        <span *ngIf="!user?.profileImage">{{ user?.name?.slice(0, 1) || 'U' }}</span>
+      </div>
+      <div>
+        <p class="eyebrow">My Profile</p>
+        <h1>{{ user?.name || 'User' }}</h1>
+        <div class="meta-row">
+          <span class="pill"><i class="fas fa-envelope"></i>{{ user?.email }}</span>
+          <span class="pill"><i class="fas fa-phone"></i>{{ user?.phone }}</span>
+          <span class="pill"><i class="fas fa-calendar"></i> Joined {{ joinedDate }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn ghost" (click)="goToHome()">
+        <i class="fas fa-arrow-left"></i> Back Home
+      </button>
+      <button class="btn primary" (click)="logout()">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </button>
+    </div>
+  </div>
+
+  <!-- 2x2 Grid of sections -->
+  <div class="sections-grid">
+    <!-- Section 1: User Info (inline edit) -->
+    <section class="section-card" aria-label="User Information">
+      <div class="section-head">
+        <h3><i class="fas fa-user"></i> Personal Information</h3>
+        <button class="btn ghost" (click)="toggleEditMode()">
+          <i class="fas" [ngClass]="editMode ? 'fa-times' : 'fa-pen'"></i>
+          {{ editMode ? 'Cancel' : 'Edit' }}
+        </button>
+      </div>
+      <div *ngIf="editMode; else infoView" class="form-grid">
+        <div class="form-group full">
+          <label>Profile Picture</label>
+          <div class="upload-area">
+            <div class="preview" [class.empty]="!profileImagePreview">
+              <img *ngIf="profileImagePreview" [src]="profileImagePreview" alt="Preview" />
+              <i *ngIf="!profileImagePreview" class="fas fa-user"></i>
+            </div>
+            <div class="upload-actions">
+              <input
+                type="file"
+                #fileInput
+                (change)="onProfileImageSelected($event)"
+                accept="image/*"
+                hidden
+              />
+              <button type="button" class="btn ghost" (click)="fileInput.click()">
+                <i class="fas fa-upload"></i>
+                {{ profileImagePreview ? 'Change Photo' : 'Upload Photo' }}
+              </button>
+              <button
+                type="button"
+                class="btn text"
+                *ngIf="profileImagePreview"
+                (click)="removeProfileImage()"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" [(ngModel)]="name" placeholder="Enter your full name" />
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" [value]="user.email" disabled />
+        </div>
+        <div class="form-group">
+          <label>Phone</label>
+          <input type="tel" [value]="user.phone" disabled />
+        </div>
+        <div class="form-group">
+          <label>Address</label>
+          <input type="text" [(ngModel)]="address" placeholder="Enter your address" />
+        </div>
+        <div class="form-group">
+          <label>Country</label>
+          <select [(ngModel)]="country">
+            <option value="">Select Country</option>
+            <option *ngFor="let c of countries" [value]="c.name">{{ c.name }}</option>
+          </select>
+        </div>
+        <div class="form-group" *ngIf="country === 'Egypt'; else otherRegion">
+          <label>Governorate</label>
+          <select [(ngModel)]="governorate">
+            <option value="">Select Governorate</option>
+            <option *ngFor="let gov of egyptianGovernorates" [value]="gov">{{ gov }}</option>
+          </select>
+        </div>
+        <ng-template #otherRegion>
+          <div class="form-group">
+            <label>City / Region</label>
+            <input type="text" [(ngModel)]="governorate" placeholder="Enter your city or region" />
+          </div>
+        </ng-template>
+        <div class="form-actions">
+          <button class="btn primary" (click)="saveProfile()" [disabled]="saving">
+            <i class="fas fa-save"></i> {{ saving ? 'Saving...' : 'Save Changes' }}
+          </button>
+          <button class="btn ghost" (click)="cancelEdit()" [disabled]="saving">Cancel</button>
+        </div>
+      </div>
+      <ng-template #infoView>
+        <div class="details-grid">
+          <div class="detail">
+            <p class="label">Email</p>
+            <p class="value">{{ user.email }}</p>
+          </div>
+          <div class="detail">
+            <p class="label">Phone</p>
+            <p class="value">{{ user.phone }}</p>
+          </div>
+          <div class="detail">
+            <p class="label">Address</p>
+            <p class="value">{{ user.address || 'Add your address' }}</p>
+          </div>
+          <div class="detail">
+            <p class="label">Country</p>
+            <p class="value">{{ user.country || 'Not set' }}</p>
+          </div>
+          <div class="detail">
+            <p class="label">City / Region</p>
+            <p class="value">{{ user.governorate || 'Not set' }}</p>
+          </div>
+          <div class="detail">
+            <p class="label">Account Status</p>
+            <p class="value status" [class.active]="!user.banned" [class.banned]="user.banned">
+              <i class="fas" [ngClass]="user.banned ? 'fa-ban' : 'fa-check-circle'"></i>
+              {{ user.banned ? 'Banned' : 'Active' }}
+            </p>
+          </div>
+        </div>
+      </ng-template>
+    </section>
+
+    <!-- Section 2: Orders with cancel + carousel pages of 5 -->
+    <section class="section-card" aria-label="User Orders">
+      <div class="section-head">
+        <h3><i class="fas fa-receipt"></i> Your Orders</h3>
+        <div class="head-meta">
+          <span class="chip" *ngIf="ordersLoading">Loading...</span>
+          <span class="chip" *ngIf="!ordersLoading">{{ orders.length }} orders</span>
+        </div>
+      </div>
+      <div *ngIf="ordersError" class="alert error inline">
+        <i class="fas fa-exclamation-circle"></i>{{ ordersError }}
+      </div>
+      <div *ngIf="!ordersLoading && !orders.length" class="empty-state">
+        <i class="fas fa-inbox"></i>
+        <p>No orders yet</p>
+      </div>
+
+      <div *ngIf="!ordersLoading && orders.length" class="orders-carousel">
+        <div class="orders-list">
+          <div class="order-card" *ngFor="let order of pagedOrders[currentPage]">
+            <div class="order-row">
+              <div>
+                <p class="label">Order #{{ order._id.slice(-6) }}</p>
+                <h4>{{ order.totalAmount }} EGP</h4>
+              </div>
+              <span class="status-badge" [ngClass]="statusClass(order.status)">{{
+                statusLabel(order.status)
+              }}</span>
+            </div>
+            <div class="meta-row small">
+              <span><i class="fas fa-calendar"></i>{{ formatOrderDate(order.orderDate) }}</span>
+              <span
+                ><i class="fas fa-credit-card"></i
+                >{{ order.paymentMethod === 'cod' ? 'Cash on Delivery' : 'Online' }}</span
+              >
+              <span><i class="fas fa-box"></i>{{ order.items.length || 0 }} items</span>
+            </div>
+            <div class="order-actions" *ngIf="order.status === 'pending'">
+              <button class="btn danger" (click)="cancelOrder(order)">
+                <i class="fas fa-ban"></i> Cancel Order
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="carousel-controls" *ngIf="pagedOrders.length > 1">
+          <button class="btn ghost" (click)="prevPage()" [disabled]="currentPage === 0">
+            <i class="fas fa-arrow-left"></i>
+          </button>
+          <span class="page-indicator">Page {{ currentPage + 1 }} / {{ pagedOrders.length }}</span>
+          <button
+            class="btn ghost"
+            (click)="nextPage()"
+            [disabled]="currentPage === pagedOrders.length - 1"
+          >
+            <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: Monthly trend arrows -->
+    <section class="section-card" aria-label="Monthly Trend">
+      <div class="section-head">
+        <h3><i class="fas fa-chart-line"></i> Monthly Payments Trend</h3>
+      </div>
+      <div class="trend-list">
+        <div class="trend-item" *ngFor="let m of monthlyTrend; let i = index">
+          <div class="trend-left">
+            <p class="trend-month">{{ m.label }}</p>
+            <p class="trend-amount">{{ m.amount }} EGP</p>
+          </div>
+          <div class="trend-right" [ngClass]="m.direction">
+            <i
+              class="fas"
+              [ngClass]="
+                m.direction === 'up'
+                  ? 'fa-arrow-up'
+                  : m.direction === 'down'
+                  ? 'fa-arrow-down'
+                  : 'fa-minus'
+              "
+            ></i>
+            <span class="trend-diff" *ngIf="i > 0">{{ m.diff }} EGP vs prev</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 4: Order summary counts -->
+    <section class="section-card" aria-label="Order Summary">
+      <div class="section-head">
+        <h3><i class="fas fa-layer-group"></i> Orders Summary</h3>
+      </div>
+      <div class="summary-cards">
+        <div class="mini-card">
+          <p class="label">Total Orders</p>
+          <h4>{{ orders.length }}</h4>
+        </div>
+        <div class="mini-card pending">
+          <p class="label">Pending</p>
+          <h4>{{ countByStatus('pending') }}</h4>
+        </div>
+        <div class="mini-card success">
+          <p class="label">Accepted</p>
+          <h4>{{ countByStatus('approved') }}</h4>
+        </div>
+        <div class="mini-card danger">
+          <p class="label">Rejected</p>
+          <h4>{{ countByStatus('rejected') }}</h4>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<ng-template #loadingState>
+  <div class="skeleton-card">
+    <div class="skeleton-line large"></div>
+    <div class="skeleton-line"></div>
+    <div class="skeleton-line"></div>
+  </div>
+</ng-template>

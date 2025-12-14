@@ -1,0 +1,341 @@
+<div class="page-editor-container">
+  <div class="editor-header">
+    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%">
+      <div>
+        <h1>
+          <i class="fas fa-pen-fancy"></i>
+          Page Editor
+        </h1>
+        <p>Customize your home page content in real-time</p>
+      </div>
+      <button
+        class="preview-btn"
+        (click)="togglePreview()"
+        [class.active]="showPreview"
+        title="Toggle Live Preview"
+      >
+        <i class="fas fa-eye"></i>
+        {{ showPreview ? 'Hide Preview' : 'Live Preview' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div *ngIf="successMessage" class="alert alert-success">
+    <i class="fas fa-check-circle"></i>
+    {{ successMessage }}
+  </div>
+  <div *ngIf="error" class="alert alert-error">
+    <i class="fas fa-exclamation-circle"></i>
+    {{ error }}
+  </div>
+
+  <!-- Info Banner -->
+  <div class="info-banner">
+    <i class="fas fa-info-circle"></i>
+    <span>
+      💡 Tip: Use the Advanced Editor for more professional design control
+      <a routerLink="/admin/advanced-editor" class="link-button">Go to Advanced Editor →</a>
+    </span>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading page content...</p>
+  </div>
+
+  <!-- Tabs -->
+  <div *ngIf="!loading" class="editor-tabs">
+    <button
+      *ngFor="let tab of ['hero', 'features', 'reviews', 'promotions']"
+      [class.active]="activeTab === tab"
+      (click)="switchTab(tab)"
+      class="tab-button"
+    >
+      <i
+        class="fas"
+        [ngClass]="
+          tab === 'hero'
+            ? 'fa-image'
+            : tab === 'features'
+            ? 'fa-star'
+            : tab === 'reviews'
+            ? 'fa-comments'
+            : 'fa-tag'
+        "
+      ></i>
+      {{ tab | titlecase }}
+    </button>
+  </div>
+
+  <!-- Content -->
+  <div *ngIf="!loading && pageContent" class="editor-content">
+    <!-- Hero Section Tab -->
+    <div *ngIf="activeTab === 'hero'" class="tab-content">
+      <h2>Hero Section</h2>
+      <div class="form-section">
+        <div class="form-group">
+          <label>Title</label>
+          <textarea [(ngModel)]="heroForm.title" placeholder="Enter hero title" rows="3"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Subtitle</label>
+          <textarea
+            [(ngModel)]="heroForm.subtitle"
+            placeholder="Enter hero subtitle"
+            rows="3"
+          ></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Background Color</label>
+            <input type="color" [(ngModel)]="heroForm.backgroundColor" />
+          </div>
+          <div class="form-group">
+            <label>Text Color</label>
+            <input type="color" [(ngModel)]="heroForm.textColor" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Background Image URL</label>
+          <input type="text" [(ngModel)]="heroForm.backgroundImage" placeholder="Enter image URL" />
+        </div>
+
+        <h3>Primary Button</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Button Text</label>
+            <input
+              type="text"
+              [(ngModel)]="primaryButtonForm.text"
+              placeholder="e.g., Explore Collection"
+            />
+          </div>
+          <div class="form-group">
+            <label>Button Link</label>
+            <input type="text" [(ngModel)]="primaryButtonForm.link" placeholder="e.g., /products" />
+          </div>
+        </div>
+
+        <h3>Secondary Button</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Button Text</label>
+            <input
+              type="text"
+              [(ngModel)]="secondaryButtonForm.text"
+              placeholder="e.g., Book Consultation"
+            />
+          </div>
+          <div class="form-group">
+            <label>Button Link</label>
+            <input
+              type="text"
+              [(ngModel)]="secondaryButtonForm.link"
+              placeholder="e.g., /tailoring"
+            />
+          </div>
+        </div>
+
+        <button (click)="saveHero()" [disabled]="saving" class="btn btn-primary">
+          <i class="fas" [ngClass]="saving ? 'fa-spinner fa-spin' : 'fa-save'"></i>
+          {{ saving ? 'Saving...' : 'Save Hero Section' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Features Tab -->
+    <div *ngIf="activeTab === 'features'" class="tab-content">
+      <h2>Features</h2>
+
+      <!-- Add Feature -->
+      <div class="form-section">
+        <h3>Add New Feature</h3>
+        <div class="form-group">
+          <label>Icon (FontAwesome class)</label>
+          <input type="text" [(ngModel)]="newFeature.icon" placeholder="e.g., fas fa-star" />
+        </div>
+        <div class="form-group">
+          <label>Title</label>
+          <input type="text" [(ngModel)]="newFeature.title" placeholder="Feature title" />
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea
+            [(ngModel)]="newFeature.description"
+            placeholder="Feature description"
+            rows="3"
+          ></textarea>
+        </div>
+        <button (click)="addFeature()" [disabled]="saving" class="btn btn-primary">
+          <i class="fas" [ngClass]="saving ? 'fa-spinner fa-spin' : 'fa-plus'"></i>
+          {{ saving ? 'Adding...' : 'Add Feature' }}
+        </button>
+      </div>
+
+      <!-- Features List -->
+      <div class="items-list">
+        <h3>Current Features (Drag to reorder)</h3>
+        <div
+          *ngFor="let feature of pageContent.features; let i = index"
+          class="item-card"
+          draggable="true"
+          (dragstart)="dragStartFeature(i)"
+          (dragover)="dragOverFeature($event)"
+          (drop)="dropFeature($event, i)"
+        >
+          <div class="item-info">
+            <i [class]="feature.icon" class="item-icon"></i>
+            <div>
+              <h4>{{ feature.title }}</h4>
+              <p>{{ feature.description }}</p>
+            </div>
+          </div>
+          <button (click)="removeFeature(i)" class="btn btn-danger">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reviews Tab -->
+    <div *ngIf="activeTab === 'reviews'" class="tab-content">
+      <h2>Reviews & Testimonials</h2>
+
+      <!-- Add Review -->
+      <div class="form-section">
+        <h3>Add New Review</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Name</label>
+            <input type="text" [(ngModel)]="newReview.name" placeholder="Customer name" />
+          </div>
+          <div class="form-group">
+            <label>Role/Title</label>
+            <input type="text" [(ngModel)]="newReview.role" placeholder="e.g., Customer" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Comment</label>
+          <textarea
+            [(ngModel)]="newReview.comment"
+            placeholder="Review comment"
+            rows="3"
+          ></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Rating (1-5)</label>
+            <input type="number" [(ngModel)]="newReview.rating" min="1" max="5" />
+          </div>
+          <div class="form-group">
+            <label>Date</label>
+            <input type="text" [(ngModel)]="newReview.date" placeholder="e.g., 2 days ago" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Image URL</label>
+          <input type="text" [(ngModel)]="newReview.image" placeholder="Customer image URL" />
+        </div>
+        <button (click)="addReview()" [disabled]="saving" class="btn btn-primary">
+          <i class="fas" [ngClass]="saving ? 'fa-spinner fa-spin' : 'fa-plus'"></i>
+          {{ saving ? 'Adding...' : 'Add Review' }}
+        </button>
+      </div>
+
+      <!-- Reviews List -->
+      <div class="items-list">
+        <h3>Current Reviews (Drag to reorder)</h3>
+        <div
+          *ngFor="let review of pageContent.reviews; let i = index"
+          class="item-card"
+          draggable="true"
+          (dragstart)="dragStartFeature(i)"
+          (dragover)="dragOverFeature($event)"
+          (drop)="dropFeature($event, i)"
+        >
+          <div class="item-info">
+            <div class="review-header">
+              <h4>{{ review.name }}</h4>
+              <span class="review-role">{{ review.role }}</span>
+            </div>
+            <div class="review-rating">
+              <i
+                *ngFor="let r of [1, 2, 3, 4, 5]"
+                class="fas fa-star"
+                [class.filled]="r <= review.rating"
+              ></i>
+            </div>
+            <p>{{ review.comment }}</p>
+            <small>{{ review.date }}</small>
+          </div>
+          <button (click)="removeReview(i)" class="btn btn-danger">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Promotions Tab -->
+    <div *ngIf="activeTab === 'promotions'" class="tab-content">
+      <h2>Promotions & Discounts</h2>
+
+      <!-- Add Promotion -->
+      <div class="form-section">
+        <h3>Add New Promotion</h3>
+        <div class="form-group">
+          <label>Icon (FontAwesome class)</label>
+          <input type="text" [(ngModel)]="newPromotion.icon" placeholder="e.g., fas fa-tag" />
+        </div>
+        <div class="form-group">
+          <label>Promotion Text</label>
+          <textarea
+            [(ngModel)]="newPromotion.text"
+            placeholder="e.g., 30% OFF on Premium Tailoring"
+            rows="2"
+          ></textarea>
+        </div>
+        <button (click)="addPromotion()" [disabled]="saving" class="btn btn-primary">
+          <i class="fas" [ngClass]="saving ? 'fa-spinner fa-spin' : 'fa-plus'"></i>
+          {{ saving ? 'Adding...' : 'Add Promotion' }}
+        </button>
+      </div>
+
+      <!-- Promotions List -->
+      <div class="items-list">
+        <h3>Current Promotions</h3>
+        <div
+          *ngFor="let promo of pageContent.promotions; let i = index"
+          class="item-card"
+          draggable="true"
+          (dragstart)="dragStartFeature(i)"
+          (dragover)="dragOverFeature($event)"
+          (drop)="dropFeature($event, i)"
+        >
+          <div class="item-info">
+            <i *ngIf="promo.icon" [class]="promo.icon" class="item-icon"></i>
+            <p>{{ promo.text }}</p>
+          </div>
+          <button (click)="removePromotion(i)" class="btn btn-danger">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live Preview Panel -->
+  <div *ngIf="showPreview" class="live-preview-panel">
+    <div class="preview-header">
+      <h2><i class="fas fa-eye"></i> Live Preview</h2>
+      <button (click)="togglePreview()" class="close-preview">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="preview-content" [innerHTML]="previewHtml"></div>
+  </div>
+</div>

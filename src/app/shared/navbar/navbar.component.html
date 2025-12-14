@@ -1,0 +1,167 @@
+<nav class="navbar">
+  <div class="nav-container">
+    <!-- Brand Logo + Name -->
+    <a routerLink="/home" class="logo-link" (click)="closeMobileMenu()">
+      <span class="logo-brand">
+        <img
+          *ngIf="brandLogoUrl"
+          [src]="brandLogoUrl"
+          alt="Brand Logo"
+          class="brand-logo"
+          loading="lazy"
+          decoding="async"
+        />
+        <span class="logo-texts">
+          <span class="logo-main">{{ brandName }}</span>
+          <span class="logo-sub">{{ brandTagline }}</span>
+        </span>
+      </span>
+    </a>
+
+    <!-- Desktop Navigation Menu -->
+    <ul class="nav-menu desktop-menu">
+      <li class="nav-item">
+        <a routerLink="/home" routerLinkActive="active" class="nav-link">
+          <i class="fas fa-home"></i> Home
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a routerLink="/about" routerLinkActive="active" class="nav-link">
+          <i class="fas fa-info-circle"></i> About
+        </a>
+      </li>
+      <li class="nav-item">
+        <a routerLink="/products" routerLinkActive="active" class="nav-link">
+          <i class="fas fa-shopping-bag"></i> Products
+        </a>
+      </li>
+      <li class="nav-item">
+        <a routerLink="/feedback" routerLinkActive="active" class="nav-link">
+          <i class="fas fa-comments"></i> Feedback
+        </a>
+      </li>
+      <!-- My Feedback removed from desktop menu to free space -->
+      <li class="nav-item" *ngIf="isLoggedIn">
+        <a routerLink="/profile" routerLinkActive="active" class="nav-link">
+          <i class="fas fa-user-circle"></i> My Profile
+        </a>
+      </li>
+    </ul>
+
+    <!-- User Section -->
+    <div class="login-container">
+      <div class="user-section" *ngIf="isLoggedIn">
+        <a routerLink="/profile" class="avatar-link" title="My Profile">
+          <img
+            *ngIf="userAvatarUrl"
+            [src]="userAvatarUrl"
+            alt="My Avatar"
+            class="user-avatar"
+            loading="lazy"
+            decoding="async"
+          />
+          <i *ngIf="!userAvatarUrl" class="fas fa-user-circle"></i>
+        </a>
+        <span class="user-name">{{ userName }}</span>
+        <a routerLink="/contact-us" class="icon-link" title="Contact Us">
+          <i class="fas fa-envelope"></i>
+        </a>
+        <a routerLink="/my-feedback" class="icon-link" title="My Feedback">
+          <i class="fas fa-list-check"></i>
+        </a>
+        <a routerLink="/cart" class="icon-link" title="My Cart">
+          <i class="fas fa-shopping-cart"></i>
+          <span class="icon-badge" *ngIf="(cart.items$ | async)?.length as c" [hidden]="c === 0">{{
+            c
+          }}</span>
+        </a>
+        <button class="logout-btn" (click)="logout()">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+      </div>
+
+      <div *ngIf="!isLoggedIn">
+        <a routerLink="/login" class="login-btn"> <i class="fas fa-sign-in-alt"></i> Login </a>
+      </div>
+
+      <!-- Mobile Menu Button -->
+      <button
+        class="mobile-menu-btn"
+        (click)="toggleMobileMenu()"
+        aria-label="Toggle navigation menu"
+      >
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile Menu -->
+  <ul class="nav-menu mobile-menu" [class.active]="isMobileMenuOpen">
+    <li class="nav-item">
+      <a routerLink="/home" routerLinkActive="active" class="nav-link" (click)="closeMobileMenu()">
+        <i class="fas fa-home"></i> Home
+      </a>
+    </li>
+    <li class="nav-item">
+      <a
+        routerLink="/products"
+        routerLinkActive="active"
+        class="nav-link"
+        (click)="closeMobileMenu()"
+      >
+        <i class="fas fa-shopping-bag"></i> Products
+      </a>
+    </li>
+    <li class="nav-item">
+      <a routerLink="/about" routerLinkActive="active" class="nav-link" (click)="closeMobileMenu()">
+        <i class="fas fa-info-circle"></i> About
+      </a>
+    </li>
+    <li class="nav-item">
+      <a
+        routerLink="/feedback"
+        routerLinkActive="active"
+        class="nav-link"
+        (click)="closeMobileMenu()"
+      >
+        <i class="fas fa-comments"></i> Feedback
+      </a>
+    </li>
+    <li class="nav-item" *ngIf="isLoggedIn">
+      <a
+        routerLink="/my-feedback"
+        routerLinkActive="active"
+        class="nav-link"
+        (click)="closeMobileMenu()"
+      >
+        <i class="fas fa-list-check"></i> My Feedback
+      </a>
+    </li>
+    <li class="nav-item" *ngIf="isLoggedIn">
+      <a
+        routerLink="/profile"
+        routerLinkActive="active"
+        class="nav-link"
+        (click)="closeMobileMenu()"
+      >
+        <i class="fas fa-user-circle"></i> My Profile
+      </a>
+    </li>
+    <li class="nav-item" *ngIf="isLoggedIn">
+      <a routerLink="/contact-us" class="nav-link" (click)="closeMobileMenu()">
+        <i class="fas fa-envelope"></i> Contact Us
+      </a>
+    </li>
+    <li class="nav-item" *ngIf="!isLoggedIn">
+      <a routerLink="/login" class="nav-link" (click)="closeMobileMenu()">
+        <i class="fas fa-sign-in-alt"></i> Login
+      </a>
+    </li>
+    <li class="nav-item" *ngIf="isLoggedIn">
+      <button class="logout-btn" (click)="logout()">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </button>
+    </li>
+  </ul>
+</nav>

@@ -1,0 +1,80 @@
+<div class="auth-page">
+  <!-- Login Content (Navbar removed for minimal, high-performance layout) -->
+  <div class="auth-content">
+    <div class="auth-container slim">
+      <div class="form-section">
+        <div class="form-header">
+          <h1>Welcome Back</h1>
+          <p class="subtitle">Sign in to access your account</p>
+        </div>
+
+        <div *ngIf="error" class="alert alert-error">
+          <i class="fas fa-exclamation-circle"></i>
+          {{ error }}
+        </div>
+
+        <form (ngSubmit)="login()" class="auth-form" novalidate>
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-envelope"></i>
+              Email Address
+            </label>
+            <input
+              type="email"
+              [(ngModel)]="email"
+              name="email"
+              class="form-input"
+              placeholder="your@email.com"
+              autocomplete="email"
+              inputmode="email"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-lock"></i>
+              Password
+            </label>
+            <div class="password-wrapper">
+              <input
+                [type]="showPassword ? 'text' : 'password'"
+                [(ngModel)]="password"
+                name="password"
+                class="form-input"
+                placeholder="••••••••"
+                autocomplete="current-password"
+                required
+                aria-label="Password"
+              />
+              <button
+                type="button"
+                class="toggle-password"
+                (click)="toggleShowPassword()"
+                aria-label="Toggle password visibility"
+              >
+                <i
+                  class="fas"
+                  [class.fa-eye]="!showPassword"
+                  [class.fa-eye-slash]="showPassword"
+                ></i>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary" [disabled]="loading">
+            <i class="fas fa-sign-in-alt"></i>
+            {{ loading ? 'Signing in...' : 'Sign In' }}
+          </button>
+        </form>
+
+        <div class="form-footer">
+          <p class="signup-text">
+            Don't have an account?
+            <a (click)="goToSignIn()" class="signup-link">Create one now</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

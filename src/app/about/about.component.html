@@ -1,0 +1,171 @@
+<!-- Hero Section -->
+<section class="about-hero">
+  <div
+    class="hero-background"
+    [ngStyle]="hero.image ? { 'background-image': 'url(' + hero.image + ')' } : null"
+  ></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <h1 class="hero-title">About Us</h1>
+    <p class="hero-subtitle">A story of craft, heart, and innovation</p>
+  </div>
+</section>
+
+<!-- Brand Story Section -->
+<section class="brand-story-section">
+  <div class="container">
+    <div class="story-header">
+      <h2 class="section-title">{{ brandStory.title }}</h2>
+      <div class="title-underline"></div>
+    </div>
+    <div class="story-content">
+      <div class="story-text">
+        <p>
+          {{
+            brandStory.description ||
+              'Our journey began with a deep love for craftsmanship and local artisans. From day one, we believed every piece should tell a story and every stitch should feel personal.'
+          }}
+        </p>
+        <p>
+          Today we collaborate with more than 25 artisans, crafting hundreds of unique pieces every
+          year.
+        </p>
+      </div>
+      <div class="story-image">
+        <img [src]="brandStory.image" alt="Brand Story" class="story-img" />
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Brand Statistics Section -->
+<section class="stats-section">
+  <div class="container">
+    <h2 class="section-title">Brand Stats</h2>
+    <div class="stats-grid">
+      @for (stat of stats; track stat.label) {
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i [class]="stat.icon"></i>
+        </div>
+        <div class="stat-value">{{ stat.value }}</div>
+        <div class="stat-label">{{ stat.label }}</div>
+      </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- CEO Story Section -->
+<section class="ceo-story-section">
+  <div class="container">
+    <div class="ceo-content">
+      <div class="ceo-image">
+        <img [src]="ceoStory.image" [alt]="ceoStory.name" class="ceo-img" />
+        <div class="ceo-badge">{{ ceoStory.title }}</div>
+      </div>
+      <div class="ceo-text">
+        <h2>{{ ceoStory.name }}</h2>
+        <p class="ceo-title-text">{{ ceoStory.title }}</p>
+        <p class="ceo-story">
+          {{
+            ceoStory.story ||
+              'I learned patience and quality early, working alongside family artisans. The dream has always been to connect local makers with the world. Seeing customers enjoy our pieces is the real reward.'
+          }}
+        </p>
+        <div class="ceo-signature">— {{ ceoStory.name }}</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Team Carousel Section -->
+<section class="team-section">
+  <div class="container">
+    <div class="team-header">
+      <div>
+        <h2 class="section-title">Meet the Team</h2>
+        <p class="section-subtitle">People crafting the experience</p>
+      </div>
+      <div class="team-nav">
+        <button
+          type="button"
+          class="carousel-btn ghost"
+          (click)="prevTeamMember()"
+          aria-label="Previous"
+          [disabled]="!teamMembers || teamMembers.length === 0"
+        >
+          <i class="fas fa-arrow-left"></i>
+        </button>
+        <button
+          type="button"
+          class="carousel-btn solid"
+          (click)="nextTeamMember()"
+          aria-label="Next"
+          [disabled]="!teamMembers || teamMembers.length === 0"
+        >
+          <i class="fas fa-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="team-carousel">
+      @if (teamMembers && teamMembers.length > 0) {
+      <div class="team-slide">
+        <div class="team-photo">
+          <img [src]="teamMembers[carouselIndex].image" [alt]="teamMembers[carouselIndex].name" />
+          <div class="photo-gradient"></div>
+        </div>
+        <div class="team-copy">
+          <div class="eyebrow">{{ teamMembers[carouselIndex].position }}</div>
+          <h3 class="member-name">{{ teamMembers[carouselIndex].name }}</h3>
+          <p class="member-bio">{{ teamMembers[carouselIndex].bio }}</p>
+          <div class="team-actions">
+            <button class="btn-primary" (click)="openTeamMemberStory(teamMembers[carouselIndex])">
+              Read full story
+              <i class="fas fa-book-open"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="carousel-dots" *ngIf="teamMembers.length > 1">
+        @for (member of teamMembers; track member.id; let i = $index) {
+        <button
+          class="dot"
+          type="button"
+          [class.active]="i === carouselIndex"
+          (click)="setTeamMemberIndex(i)"
+          [attr.aria-label]="'Go to ' + member.name"
+        ></button>
+        }
+      </div>
+      } @else {
+      <div class="carousel-empty">
+        <p>Team members will appear here</p>
+      </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- Team Member Story Modal -->
+@if (showStoryModal && currentTeamMember) {
+<div class="modal-overlay" (click)="closeTeamMemberStory()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <button class="modal-close" (click)="closeTeamMemberStory()">
+      <i class="fas fa-times"></i>
+    </button>
+    <div class="modal-header">
+      <img [src]="currentTeamMember.image" [alt]="currentTeamMember.name" class="modal-avatar" />
+      <div class="modal-title">
+        <h2>{{ currentTeamMember.name }}</h2>
+        <p>{{ currentTeamMember.position }}</p>
+      </div>
+    </div>
+    <div class="modal-body">
+      <p>{{ currentTeamMember.bio }}</p>
+    </div>
+  </div>
+</div>
+}

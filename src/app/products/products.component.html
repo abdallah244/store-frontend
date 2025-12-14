@@ -1,0 +1,245 @@
+<div class="products-container">
+  <div class="products-header">
+    <h1>Our Products</h1>
+    <p>Browse our collection of high-quality items</p>
+  </div>
+
+  @if (loading) {
+  <div class="loading">
+    <div class="spinner"></div>
+    <p>Loading products...</p>
+  </div>
+  } @else if (error) {
+  <div class="error-message">
+    <p>{{ error }}</p>
+    <button class="retry-btn" (click)="loadProducts()">Try Again</button>
+  </div>
+  } @else if (products.length === 0) {
+  <div class="no-products">
+    <p>No products available at the moment</p>
+  </div>
+  } @else {
+  <!-- Search and Filter Section -->
+  <div class="filters-section">
+    <!-- Favorites Button -->
+    <button
+      class="favorites-btn"
+      (click)="toggleShowFavorites()"
+      [class.active]="showFavorites"
+      title="View Favorites"
+    >
+      <i class="fas fa-heart"></i>
+      <span class="favorites-count" *ngIf="favorites$ | async as fav">{{ fav.length }}</span>
+    </button>
+
+    <!-- Search Bar -->
+    <div class="search-box">
+      <i class="fas fa-search"></i>
+      <input
+        type="text"
+        [(ngModel)]="searchText"
+        (ngModelChange)="onSearchChange()"
+        placeholder="Search products..."
+        class="search-input"
+      />
+    </div>
+
+    <!-- Gender Filter -->
+    <div class="filter-group">
+      <label class="filter-label">Type</label>
+      <select [(ngModel)]="selectedGender" (ngModelChange)="onGenderChange()" class="filter-select">
+        @for (option of genderOptions; track option.value) {
+        <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select>
+    </div>
+
+    <!-- Category Filter -->
+    <div class="filter-group">
+      <label class="filter-label">Category</label>
+      <select
+        [(ngModel)]="selectedCategory"
+        (ngModelChange)="onCategoryChange()"
+        class="filter-select"
+      >
+        <option value="all">All Categories</option>
+        @for (category of categories; track category) {
+        <option [value]="category">{{ category }}</option>
+        }
+      </select>
+    </div>
+
+    <!-- Results Count -->
+    <div class="results-info">
+      <span>{{ filteredProducts.length }} Product@if (filteredProducts.length !== 1) {s}</span>
+    </div>
+  </div>
+
+  <!-- Favorites Section -->
+  <div class="favorites-section" *ngIf="showFavorites">
+    <div class="favorites-header">
+      <h2><i class="fas fa-heart"></i> My Favorites</h2>
+      <button class="close-btn" (click)="toggleShowFavorites()" title="Close">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div *ngIf="favorites$ | async as favorites">
+      <div class="no-favorites" *ngIf="favorites.length === 0">
+        <i class="fas fa-heart-broken"></i>
+        <p>No favorites yet. Start adding your favorite products!</p>
+      </div>
+
+      <div class="favorites-grid" *ngIf="favorites.length > 0">
+        <div class="favorite-card" *ngFor="let product of favorites; trackBy: trackByProductId">
+          <div class="favorite-image">
+            <img [src]="product.image" [alt]="product.name" />
+            <div class="discount-badge" *ngIf="product.discount && product.discount > 0">
+              -{{ product.discount }}%
+            </div>
+          </div>
+
+          <div class="favorite-content">
+            <h3 class="favorite-name">{{ product.name }}</h3>
+
+            <span class="favorite-category" *ngIf="product.category">{{ product.category }}</span>
+
+            <div class="favorite-price">
+              <span class="original-price" *ngIf="product.discount && product.discount > 0">
+                ${{ product.price.toFixed(2) }}
+              </span>
+              <span class="discounted-price" *ngIf="product.discount && product.discount > 0">
+                ${{ (product.price - (product.price * product.discount) / 100).toFixed(2) }}
+              </span>
+              <span class="price" *ngIf="!product.discount || product.discount === 0">
+                ${{ product.price.toFixed(2) }}
+              </span>
+            </div>
+
+            <div class="favorite-actions">
+              <button
+                class="btn-add-cart"
+                (click)="addFavoriteToCart(product, $event)"
+                title="Add to Cart"
+              >
+                <i class="fas fa-shopping-cart"></i>
+              </button>
+              <button
+                class="btn-remove-favorite"
+                (click)="removeFavorite(product._id, $event)"
+                title="Remove from Favorites"
+              >
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="products-grid">
+    @for (product of filteredProducts; track product._id) {
+    <div class="product-card">
+      <div class="product-image-wrapper">
+        <img [src]="product.image" [alt]="product.name" class="product-image" />
+        @if (product.isOnSale) {
+        <div class="sale-badge">ON SALE</div>
+        } @if (product.discount && product.discount > 0) {
+        <div class="discount-badge">-{{ product.discount }}%</div>
+        } @if (!isStockAvailable(product.stock)) {
+        <div class="out-of-stock-overlay">
+          <span>Out of Stock</span>
+        </div>
+        }
+      </div>
+
+      <div class="product-content">
+        <h3 class="product-name">{{ product.name }}</h3>
+        <p class="product-description">{{ product.description }}</p>
+
+        @if (product.category) {
+        <span class="product-category">{{ product.category }}</span>
+        }
+
+        <div class="product-price-section">
+          @if (product.discount && product.discount > 0) {
+          <div class="price-with-discount">
+            <span class="original-price">${{ product.price.toFixed(2) }}</span>
+            <span class="discounted-price"
+              >${{ getDiscountedPrice(product.price, product.discount).toFixed(2) }}</span
+            >
+          </div>
+          } @else {
+          <span class="price">${{ product.price.toFixed(2) }}</span>
+          }
+        </div>
+
+        <div class="product-stock">
+          @if (isStockAvailable(product.stock)) {
+          <span class="stock-available">Stock: {{ product.stock }} available</span>
+          } @else {
+          <span class="stock-unavailable">Out of Stock</span>
+          }
+        </div>
+
+        <div class="product-actions">
+          <button
+            class="add-to-cart-btn"
+            [disabled]="!isStockAvailable(product.stock)"
+            (click)="addToCart(product, $event)"
+            title="{{ isStockAvailable(product.stock) ? 'Add to Cart' : 'Unavailable' }}"
+          >
+            <i class="fas fa-shopping-cart"></i>
+          </button>
+
+          <button
+            class="show-details-btn"
+            (click)="openProductDetail(product)"
+            title="View Details"
+          >
+            <i class="fas fa-eye"></i>
+          </button>
+
+          <button
+            class="favorite-btn"
+            [class.active]="isFavorite(product._id)"
+            (click)="toggleFavorite(product, $event)"
+            title="Add to Favorites"
+          >
+            <i class="fas" [ngClass]="isFavorite(product._id) ? 'fa-heart' : 'fa-heart-o'"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+    }
+  </div>
+  }
+</div>
+
+<!-- Product Details Modal -->
+@if (showDetailModal && selectedProduct) {
+<app-product-details-modal
+  [product]="selectedProduct"
+  (addToCart)="onDetailAddToCart($event)"
+  (close)="closeProductDetail()"
+></app-product-details-modal>
+}
+
+<!-- Product Selection Modal -->
+@if (showSelectionModal && productForSelection) {
+<app-product-selection-modal
+  [product]="productForSelection"
+  (close)="showSelectionModal = false"
+  (confirm)="onSelectionConfirm($event)"
+></app-product-selection-modal>
+}
+
+<!-- Add to Cart Confirmation Modal -->
+@if (showConfirmationModal) {
+<app-add-to-cart-confirmation-modal
+  [productName]="lastAddedProductName"
+  (continue)="onConfirmationContinue()"
+  (goToCart)="onConfirmationGoToCart()"
+></app-add-to-cart-confirmation-modal>
+}

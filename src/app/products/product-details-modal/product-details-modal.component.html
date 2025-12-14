@@ -1,0 +1,131 @@
+<div class="modal-backdrop" (click)="onBackdropClick($event)">
+  <div class="modal-container" *ngIf="product">
+    <!-- Close Button -->
+    <button class="btn-close" (click)="closeModal()" title="Close">
+      <i class="fas fa-times"></i>
+    </button>
+
+    <!-- Modal Content -->
+    <div class="modal-content">
+      <!-- Images Section -->
+      <div class="images-section">
+        <!-- Main Image -->
+        <div class="main-image-container">
+          <img [src]="currentImage" [alt]="product.name" class="main-image" loading="eager" />
+
+          <!-- Navigation Arrows -->
+          <button *ngIf="allImages.length > 1" class="btn-nav btn-prev" (click)="previousImage()">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <button *ngIf="allImages.length > 1" class="btn-nav btn-next" (click)="nextImage()">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+
+          <!-- Image Counter -->
+          <div *ngIf="allImages.length > 1" class="image-counter">
+            {{ currentImageIndex + 1 }} / {{ allImages.length }}
+          </div>
+
+          <!-- Sale Badge -->
+          <div *ngIf="product.isOnSale" class="sale-badge">ON SALE</div>
+        </div>
+
+        <!-- Thumbnails -->
+        <div *ngIf="allImages.length > 1" class="thumbnails">
+          <div
+            *ngFor="let img of allImages; let i = index; trackBy: trackByIndex"
+            class="thumbnail"
+            [class.active]="currentImageIndex === i"
+            (click)="goToImage(i)"
+          >
+            <img [src]="img" [alt]="'Image ' + (i + 1)" loading="lazy" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Details Section -->
+      <div class="details-section">
+        <!-- Product Info -->
+        <div class="product-info">
+          <h2 class="product-name">{{ product.name }}</h2>
+
+          <!-- Category & Gender -->
+          <div class="product-meta">
+            <span class="meta-tag category-tag">{{ product.category }}</span>
+            <span class="meta-tag gender-tag">{{ product.gender | titlecase }}</span>
+          </div>
+
+          <!-- Description -->
+          <p class="product-description">{{ product.description }}</p>
+
+          <!-- Price -->
+          <div class="price-section">
+            <span class="price-label">Price:</span>
+            <div class="price-display">
+              <span *ngIf="product.discount && product.discount > 0" class="original-price">
+                ${{ product.price.toFixed(2) }}
+              </span>
+              <span class="current-price">${{ discountedPrice.toFixed(2) }}</span>
+              <span *ngIf="product.discount && product.discount > 0" class="discount-badge">
+                -{{ product.discount }}%
+              </span>
+            </div>
+          </div>
+
+          <!-- Stock Status -->
+          <div class="stock-status" [class.out-of-stock]="product.stock === 0">
+            <i
+              class="fas"
+              [class.fa-check-circle]="product.stock > 0"
+              [class.fa-times-circle]="product.stock === 0"
+            ></i>
+            <span>{{ product.stock > 0 ? `In Stock (${product.stock})` : 'Out of Stock' }}</span>
+          </div>
+        </div>
+
+        <!-- Colors Section -->
+        <div *ngIf="product.colors && product.colors.length > 0" class="options-section">
+          <h3 class="options-title">Available Colors</h3>
+          <div class="colors-grid">
+            <div
+              *ngFor="let color of product.colors; trackBy: trackByColorName"
+              class="color-option"
+              [class.selected]="selectedColor?.name === color.name"
+              (click)="selectColor(color)"
+              [title]="color.name"
+            >
+              <div class="color-swatch" [style.backgroundColor]="color.code"></div>
+              <span class="color-name">{{ color.name }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sizes Section -->
+        <div *ngIf="product.sizes && product.sizes.length > 0" class="options-section">
+          <h3 class="options-title">Available Sizes</h3>
+          <div class="sizes-grid">
+            <button
+              *ngFor="let size of product.sizes; trackBy: trackBySize"
+              class="size-option"
+              [class.selected]="selectedSize === size"
+              (click)="selectSize(size)"
+            >
+              {{ size }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="actions-section">
+          <button class="btn-add-to-cart" (click)="onAddToCart()">
+            <i class="fas fa-shopping-bag"></i>
+            Add to Cart
+          </button>
+          <button class="btn-wishlist">
+            <i class="fas fa-heart"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

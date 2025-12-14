@@ -1,0 +1,69 @@
+<div class="modal-overlay" (click)="onBackdropClick()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Select Options</h2>
+      <button class="close-btn" (click)="close.emit()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="product-preview">
+        <img [src]="product.image" [alt]="product.name" />
+        <div class="product-info">
+          <h3>{{ product.name }}</h3>
+          <p class="price">
+            <ng-container *ngIf="product.discount && product.discount > 0">
+              <span class="original">${{ originalPrice }}</span>
+              <span class="discounted">${{ discountedPrice }}</span>
+            </ng-container>
+            <ng-container *ngIf="!product.discount || product.discount === 0">
+              ${{ displayPrice }}
+            </ng-container>
+          </p>
+        </div>
+      </div>
+
+      <!-- Size Selection -->
+      <div class="option-group" *ngIf="product.sizes && product.sizes.length > 0">
+        <label class="option-label">Size</label>
+        <div class="size-options">
+          <button
+            *ngFor="let size of product.sizes"
+            class="size-btn"
+            [class.selected]="selectedSize === size"
+            (click)="selectedSize = size"
+          >
+            {{ size }}
+          </button>
+        </div>
+        <span class="error" *ngIf="showError && !selectedSize">Please select a size</span>
+      </div>
+
+      <!-- Color Selection -->
+      <div class="option-group" *ngIf="product.colors && product.colors.length > 0">
+        <label class="option-label">Color</label>
+        <div class="color-options">
+          <button
+            *ngFor="let color of product.colors"
+            class="color-btn"
+            [class.selected]="selectedColor === color.code"
+            (click)="selectedColor = color.code"
+            [title]="color.name"
+          >
+            <span class="color-dot" [style.background]="color.code"></span>
+            <span class="color-name">{{ color.name }}</span>
+          </button>
+        </div>
+        <span class="error" *ngIf="showError && !selectedColor">Please select a color</span>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="close.emit()"><i class="fas fa-times"></i> Cancel</button>
+      <button class="btn-confirm" (click)="onConfirm()">
+        <i class="fas fa-check"></i> Add to Cart
+      </button>
+    </div>
+  </div>
+</div>

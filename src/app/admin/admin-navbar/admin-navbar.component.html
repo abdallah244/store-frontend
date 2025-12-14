@@ -1,0 +1,61 @@
+<nav class="admin-navbar">
+  <div class="navbar-container">
+    <!-- Logo / Brand -->
+    <div class="navbar-brand" routerLink="/admin/dashboard">
+      <i class="fas fa-crown"></i>
+      <span class="brand-text">Admin Panel</span>
+    </div>
+
+    <!-- Center: Admin Info -->
+    <div class="navbar-center">
+      <div class="admin-info">
+        <i class="fas fa-user-circle"></i>
+        <span class="admin-email">{{ adminEmail }}</span>
+        <span class="separator">•</span>
+        <span class="current-time">{{ currentTime }}</span>
+      </div>
+    </div>
+
+    <!-- Right: Menu & Logout -->
+    <div class="navbar-right">
+      <!-- Desktop Menu -->
+      <div class="desktop-menu">
+        <a routerLink="/admin/dashboard" class="nav-link">
+          <i class="fas fa-home"></i>
+          <span>Dashboard</span>
+        </a>
+        <a routerLink="/admin/orders" class="nav-link">
+          <i class="fas fa-shopping-bag"></i>
+          <span>Orders</span>
+        </a>
+        <button (click)="logout()" class="nav-link logout-btn">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Logout</span>
+        </button>
+      </div>
+
+      <!-- Mobile Menu Toggle -->
+      <button class="mobile-toggle" (click)="toggleMobileMenu()" aria-label="Toggle menu">
+        <i class="fas" [class.fa-bars]="!isMobileMenuOpen" [class.fa-times]="isMobileMenuOpen"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile Menu -->
+  @if (isMobileMenuOpen) {
+  <div class="mobile-menu">
+    <a routerLink="/admin/dashboard" class="mobile-menu-link" (click)="closeMobileMenu()">
+      <i class="fas fa-home"></i>
+      <span>Dashboard</span>
+    </a>
+    <a routerLink="/admin/orders" class="mobile-menu-link" (click)="closeMobileMenu()">
+      <i class="fas fa-shopping-bag"></i>
+      <span>Orders</span>
+    </a>
+    <button (click)="logout()" class="mobile-menu-link logout-btn">
+      <i class="fas fa-sign-out-alt"></i>
+      <span>Logout</span>
+    </button>
+  </div>
+  }
+</nav>

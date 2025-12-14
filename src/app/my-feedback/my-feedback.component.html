@@ -1,0 +1,118 @@
+<div class="my-feedback-page">
+  <div class="hero">
+    <div class="hero-text">
+      <p class="eyebrow">User Dashboard</p>
+      <h1>My Feedback</h1>
+      <p class="subtitle">See all your submissions and their review status.</p>
+    </div>
+    <div class="hero-meta" *ngIf="isLoggedIn">
+      <span class="chip">
+        <i class="fas fa-user"></i>
+        {{ userName || 'User' }}
+      </span>
+      <span class="chip">
+        <i class="fas fa-inbox"></i>
+        {{ feedbacks.length }} total
+      </span>
+      <span class="chip success" *ngIf="feedbacks.length">
+        <i class="fas fa-check-circle"></i>
+        {{ approvedCount }} approved
+      </span>
+      <span class="chip warn" *ngIf="feedbacks.length">
+        <i class="fas fa-clock"></i>
+        {{ pendingCount }} pending
+      </span>
+      <span class="chip danger" *ngIf="feedbacks.length">
+        <i class="fas fa-times-circle"></i>
+        {{ rejectedCount }} rejected
+      </span>
+    </div>
+  </div>
+
+  <div class="card" *ngIf="!isLoggedIn && !isLoadingUser">
+    <div class="empty">
+      <i class="fas fa-lock"></i>
+      <h3>Sign in to view your feedback</h3>
+      <p>You need to be logged in to access My Feedback.</p>
+      <a routerLink="/login" class="btn primary">Sign In</a>
+    </div>
+  </div>
+
+  <div class="card" *ngIf="!isLoggedIn && isLoadingUser">
+    <div class="loading">
+      <i class="fas fa-spinner fa-spin"></i>
+      <span>Checking your account...</span>
+    </div>
+  </div>
+
+  <div *ngIf="isLoggedIn">
+    <div class="card" *ngIf="isLoading">
+      <div class="loading">
+        <i class="fas fa-spinner fa-spin"></i>
+        <span>جاري تحميل فيدباكاتك...</span>
+      </div>
+    </div>
+
+    <div class="card error" *ngIf="!isLoading && errorMessage">
+      <i class="fas fa-exclamation-circle"></i>
+      <span>{{ errorMessage }}</span>
+      <button class="btn ghost" (click)="loadMyFeedbacks()">Retry</button>
+    </div>
+
+    <div class="card" *ngIf="!isLoading && !errorMessage && feedbacks.length === 0">
+      <div class="empty">
+        <i class="fas fa-inbox"></i>
+        <h3>No feedback yet</h3>
+        <p>Start by writing your first feedback.</p>
+        <a routerLink="/feedback" class="btn secondary">Submit feedback</a>
+      </div>
+    </div>
+
+    <div class="feedback-grid" *ngIf="!isLoading && !errorMessage && feedbacks.length > 0">
+      @for (fb of feedbacks; track fb._id) {
+      <div class="card feedback-card">
+        <div class="card-header">
+          <div>
+            <p class="eyebrow">{{ fb.createdAt | date : 'mediumDate' }}</p>
+            <h3>{{ fb.title }}</h3>
+          </div>
+          <span [class]="getStatusBadge(fb.status)">
+            <i
+              class="fas"
+              [ngClass]="{
+                'fa-clock': fb.status === 'pending',
+                'fa-check-circle': fb.status === 'approved',
+                'fa-times-circle': fb.status === 'rejected'
+              }"
+            ></i>
+            {{ fb.status | uppercase }}
+          </span>
+        </div>
+
+        <p class="description">{{ fb.description }}</p>
+
+        <div class="meta">
+          <span class="pill">
+            <i class="fas fa-tag"></i>
+            {{ fb.category | uppercase }}
+          </span>
+          <span class="pill">
+            <i class="fas fa-star"></i>
+            {{ fb.rating }}/5
+          </span>
+        </div>
+
+        <div class="notes" *ngIf="fb.adminNotes">
+          <p class="eyebrow">ملاحظات الإدارة</p>
+          <p class="note-text">{{ fb.adminNotes }}</p>
+        </div>
+
+        <button class="btn-delete" (click)="deleteFeedback(fb._id)">
+          <i class="fas fa-trash"></i>
+          Delete Feedback
+        </button>
+      </div>
+      }
+    </div>
+  </div>
+</div>

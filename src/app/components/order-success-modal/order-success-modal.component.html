@@ -1,0 +1,16 @@
+<div class="modal-overlay" *ngIf="isOpen" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="success-icon">
+      <i class="fas fa-check-circle"></i>
+    </div>
+    <h2>Order Placed Successfully!</h2>
+    <p>
+      Thank you! Your order has been received successfully and we will contact you as soon as
+      possible.
+    </p>
+    <button class="close-btn" (click)="closeModal()">
+      <i class="fas fa-times"></i>
+      Close
+    </button>
+  </div>
+</div>
